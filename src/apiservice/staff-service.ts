@@ -3,6 +3,7 @@ import { convertObjToQueryParams } from "../utils/basic.utils";
 import {
   StaffFormValues,
   StaffListResponse,
+  StaffOnboarding,
   StaffRecord,
   StaffRole,
   StaffRoleListResponse,
@@ -27,6 +28,23 @@ export const getStaffs = async (query: StaffListQuery): Promise<StaffListRespons
 export const getStaff = async (staffId: number | string): Promise<StaffRecord> => {
   const axios = await instance(null, null, true, true);
   const { data } = await axios.get(`${staffPath}${staffId}`);
+  return data?.data || data;
+};
+
+export const getStaffOnboarding = async (
+  staffId: number | string,
+): Promise<StaffOnboarding> => {
+  const axios = await instance(null, null, true, true);
+  const { data } = await axios.get(`${staffPath}${staffId}/onboarding`);
+  return data?.data || data;
+};
+
+export const upsertStaffOnboarding = async (
+  staffId: number | string,
+  body: StaffOnboarding,
+) => {
+  const axios = await instance(null, null, true, true);
+  const { data } = await axios.put(`${staffPath}${staffId}/onboarding`, body);
   return data?.data || data;
 };
 

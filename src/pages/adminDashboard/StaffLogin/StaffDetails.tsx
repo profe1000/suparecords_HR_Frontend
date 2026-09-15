@@ -1,4 +1,4 @@
-import { ArrowLeftOutlined, MailOutlined, PhoneOutlined, TeamOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, EditOutlined, EyeOutlined, MailOutlined, PhoneOutlined, TeamOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -90,9 +90,23 @@ export default function StaffDetails() {
                 <p className="mt-1 text-sm text-slate-500">{role?.title || "Staff member"}</p>
               </div>
             </div>
-            <span className={`inline-flex self-start rounded-full px-3 py-1.5 text-xs font-semibold ${statusClass(staff.status)}`}>
-              {staff.status}
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-semibold ${statusClass(staff.status)}`}>
+                {staff.status}
+              </span>
+              <Link
+                to={`/admin/staff-login/${staff.id}/onboarding`}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                <EyeOutlined /> View Onboarding
+              </Link>
+              <Link
+                to={`/admin/staff-login/${staff.id}/onboarding?mode=edit`}
+                className="inline-flex items-center gap-2 rounded-lg bg-red-800 px-3 py-2 text-sm font-medium text-white hover:bg-red-900"
+              >
+                <EditOutlined /> Upsert Onboarding
+              </Link>
+            </div>
           </div>
         </div>
 
