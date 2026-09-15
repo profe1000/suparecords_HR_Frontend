@@ -7,6 +7,7 @@ import AdminLogout from "./AdminLogout/AdminLogout";
 import AdminSettingsPage from "./AdminSettingsPage/AdminSettingsPage";
 import Tasks from "./RoomMaintenance/RoomMaintenance";
 import StaffLogin from "./StaffLogin/StaffLogin";
+import StaffDetails from "./StaffLogin/StaffDetails";
 import ScrollToTop from "../../utils/scrollToTop";
 
 const AdminPagesRoutes = () => {
@@ -18,6 +19,7 @@ const AdminPagesRoutes = () => {
         <Route path="/settings" element={<AdminSettingsPage />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/staff-login" element={<StaffLogin />} />
+        <Route path="/staff-login/:id" element={<StaffDetails />} />
         <Route path="/logout" element={<AdminLogout />} />
         <Route path="*" element={<Nopage />} />
       </Route>

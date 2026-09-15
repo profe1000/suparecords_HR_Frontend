@@ -72,7 +72,7 @@ const Sidebar: React.FC<ISideBarType> = ({ onLinkChange }) => {
     {
       icon: <KeyOutlined />,
       url: "/admin/staff-login",
-      title: "Staff Login",
+      title: "Staff",
     },
     {
       icon: <SettingOutlined />,

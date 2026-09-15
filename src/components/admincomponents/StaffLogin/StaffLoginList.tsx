@@ -1,4 +1,5 @@
 import { StaffRecord, StaffRole } from "./staffLogin.types";
+import { Link } from "react-router-dom";
 
 type Props = {
   records: StaffRecord[];
@@ -39,6 +40,7 @@ export default function StaffLoginList({ records, roles, loading }: Props) {
               <th className="px-3 py-3">Contact</th>
               <th className="px-3 py-3">Department</th>
               <th className="px-3 py-3">Status</th>
+              <th className="px-3 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -59,6 +61,14 @@ export default function StaffLoginList({ records, roles, loading }: Props) {
                   <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${badgeClass(record.status)}`}>
                     {record.status}
                   </span>
+                </td>
+                <td className="px-3 py-4 text-right">
+                  <Link
+                    to={`/admin/staff-login/${record.id}`}
+                    className="inline-flex rounded-lg border border-red-700 px-3 py-2 text-sm font-medium text-red-800 transition hover:bg-red-50"
+                  >
+                    View
+                  </Link>
                 </td>
               </tr>
             ))}
@@ -91,6 +101,12 @@ export default function StaffLoginList({ records, roles, loading }: Props) {
                 <dd className="mt-1 text-sm font-medium text-slate-800">{record.department || "-"}</dd>
               </div>
             </dl>
+            <Link
+              to={`/admin/staff-login/${record.id}`}
+              className="mt-4 inline-flex w-full justify-center rounded-lg border border-red-700 px-3 py-2 text-sm font-medium text-red-800 transition hover:bg-red-50"
+            >
+              View Details
+            </Link>
           </article>
         ))}
       </div>
