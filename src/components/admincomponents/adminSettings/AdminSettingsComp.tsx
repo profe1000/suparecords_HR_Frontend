@@ -85,26 +85,6 @@ export const AdminSettingsComp = () => {
       path: "",
     },
     {
-      icon: <DollarOutlined />,
-      text: "Expense Categories",
-      path: "/admin/expense-categories",
-    },
-    {
-      icon: <CreditCardOutlined />,
-      text: "Payment Methods",
-      path: "/admin/payment-methods",
-    },
-    {
-      icon: <SkinOutlined />,
-      text: "Laundry Item Types",
-      path: "/admin/laundry-item-types",
-    },
-    {
-      icon: <ShoppingOutlined />,
-      text: "Laundry Orders",
-      path: "/admin/laundry-orders",
-    },
-    {
       icon: <QuestionCircleOutlined />,
       text: "Help Center",
       action: () => openModalWithIndex(3),

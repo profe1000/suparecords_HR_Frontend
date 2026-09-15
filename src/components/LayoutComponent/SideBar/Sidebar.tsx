@@ -8,27 +8,12 @@ import "./Sidebar.css";
 import {
   ExclamationCircleFilled,
   DashboardOutlined,
-  AppstoreOutlined,
-  ShoppingOutlined,
-  FolderOpenOutlined,
-  ShoppingCartOutlined,
-  DollarCircleOutlined,
-  CreditCardOutlined,
-  TagsOutlined,
-  UserOutlined,
-  TeamOutlined,
   KeyOutlined,
-  BarChartOutlined,
   SettingOutlined,
-  ShopOutlined,
-  WalletOutlined,
   LogoutOutlined,
   ToolOutlined,
 } from "@ant-design/icons";
-import {
-  IAdminAuthType,
-  IAdminTypeData,
-} from "../../../apiservice/admin-AuthService.type";
+import { IAdminAuthType } from "../../../apiservice/admin-AuthService.type";
 
 type ISideBarType = {
   onLinkChange?: () => void;
@@ -80,69 +65,14 @@ const Sidebar: React.FC<ISideBarType> = ({ onLinkChange }) => {
       title: "Dashboard",
     },
     {
-      icon: <AppstoreOutlined />,
-      url: "/admin/room-types",
-      title: "Room Type",
-    },
-    {
-      icon: <AppstoreOutlined />,
-      url: "/admin/rooms",
-      title: "Rooms",
-    },
-    {
-      icon: <ShoppingCartOutlined />,
-      url: "/admin/room-reservations",
-      title: "Room Reservations",
-    },
-    {
       icon: <ToolOutlined />,
       url: "/admin/room-maintenance",
-      title: "Rooms Maintenance",
-    },
-    {
-      icon: <ShoppingOutlined />,
-      url: "/admin/laundry-orders",
-      title: "Laundry Orders",
-    },
-    {
-      icon: <DollarCircleOutlined />,
-      url: "/admin/expenses",
-      title: "Expenses",
+      title: "Room Maintenance",
     },
     {
       icon: <KeyOutlined />,
       url: "/admin/staff-login",
       title: "Staff Login",
-    },
-    {
-      icon: <TeamOutlined />,
-      url: "/admin/customers",
-      title: "Customers",
-    },
-    {
-      icon: <ShopOutlined />,
-      url: "/admin/vendors",
-      title: "Vendors",
-    },
-    {
-      icon: <CreditCardOutlined />,
-      url: "/admin/customer-payment-transactions",
-      title: "Customer Payment Transactions",
-    },
-    {
-      icon: <CreditCardOutlined />,
-      url: "/admin/vendor-payment-transactions",
-      title: "Vendor Payment Transactions",
-    },
-    {
-      icon: <WalletOutlined />,
-      url: "/admin/inflow-transactions",
-      title: "Inflow Transactions",
-    },
-    {
-      icon: <BarChartOutlined />,
-      url: "/admin/transactions",
-      title: "Transactions",
     },
     {
       icon: <SettingOutlined />,
