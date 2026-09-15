@@ -1,10 +1,30 @@
 import instance from "../utils/axios.wrapper";
 import { convertObjToQueryParams } from "../utils/basic.utils";
-import {
-  Room,
-  RoomFormValues,
-  RoomListResponse,
-} from "../components/admincomponents/rooms/room.types";
+
+export interface Room {
+  id: number;
+  branch_id: number;
+  room_type_id: number;
+  room_number: string;
+  floor: string;
+  status: string;
+  cleaning_status: string;
+  maintenance_note: string;
+  is_active: boolean;
+  staff_id: number | null;
+}
+
+export interface RoomListResponse {
+  status: string;
+  message: string;
+  data: Room[];
+  meta: {
+    total: number;
+    page: number;
+    perPage: number;
+    totalPages: number;
+  };
+}
 
 const roomsPath = "v1/rooms/";
 
@@ -20,29 +40,5 @@ export interface RoomListQuery {
 export const getRooms = async (query: RoomListQuery): Promise<RoomListResponse> => {
   const axios = await instance(null, null, true, true);
   const { data } = await axios.get(`${roomsPath}${convertObjToQueryParams(query)}`);
-  return data;
-};
-
-export const getRoom = async (id: number | string): Promise<Room> => {
-  const axios = await instance(null, null, true, true);
-  const { data } = await axios.get(`${roomsPath}${id}`);
-  return data?.data || data;
-};
-
-export const createRoom = async (body: RoomFormValues) => {
-  const axios = await instance(null, null, true, true);
-  const { data } = await axios.post(roomsPath, body);
-  return data;
-};
-
-export const updateRoom = async (id: number | string, body: RoomFormValues) => {
-  const axios = await instance(null, null, true, true);
-  const { data } = await axios.put(`${roomsPath}${id}`, body);
-  return data;
-};
-
-export const deleteRoom = async (id: number | string) => {
-  const axios = await instance(null, null, true, true);
-  const { data } = await axios.delete(`${roomsPath}${id}`);
   return data;
 };

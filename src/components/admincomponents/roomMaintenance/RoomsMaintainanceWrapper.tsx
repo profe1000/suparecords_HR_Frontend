@@ -13,7 +13,7 @@ import {
 } from "../../../apiservice/maintenance-service";
 import { getRooms } from "../../../apiservice/rooms-service";
 import { getStaffs } from "../../../apiservice/staff-service";
-import { Room } from "../rooms/room.types";
+import { Room } from "../../../apiservice/rooms-service";
 import { StaffRecord } from "../StaffLogin/staffLogin.types";
 import { useAppSelector } from "../../../Redux/reduxCustomHook";
 import type { RootState } from "../../../Redux/store";

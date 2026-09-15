@@ -1,9 +1,0 @@
-@tailwind base;
-
-@layer base {
-  img {
-    @apply inline;
-  }
-}
-@tailwind components;
-@tailwind utilities;

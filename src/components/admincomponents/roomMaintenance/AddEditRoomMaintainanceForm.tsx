@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { Room } from "../rooms/room.types";
+import { Room } from "../../../apiservice/rooms-service";
 import { StaffRecord } from "../StaffLogin/staffLogin.types";
 import {
   MaintenanceLog,

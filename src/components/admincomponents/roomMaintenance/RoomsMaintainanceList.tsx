@@ -1,5 +1,5 @@
 import { LoadingOutlined } from "@ant-design/icons";
-import { Room } from "../rooms/room.types";
+import { Room } from "../../../apiservice/rooms-service";
 import { StaffRecord } from "../StaffLogin/staffLogin.types";
 import { MaintenanceLog } from "./roomMaintainance.types";
 
