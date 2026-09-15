@@ -188,7 +188,10 @@ type Props = {
 export default function StaffOnboardingPage({ publicMode = false }: Props) {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const editing = publicMode || searchParams.get("mode") === "edit";
+  const [publicFinalized, setPublicFinalized] = useState(false);
+  const editing = publicMode
+    ? !publicFinalized
+    : searchParams.get("mode") === "edit";
   const [staff, setStaff] = useState<StaffRecord | null>(null);
   const [staffOptions, setStaffOptions] = useState<Array<{ id: number; name: string }>>([]);
   const [onboarding, setOnboarding] = useState<StaffOnboarding>(emptyOnboarding());
@@ -267,7 +270,7 @@ export default function StaffOnboardingPage({ publicMode = false }: Props) {
       .catch(() => setStaffOptions([]));
   }, [authData.data?.id, authData.staff?.branch_id, publicMode, searchParams]);
 
-  const save = async () => {
+  const save = async (finalize: boolean) => {
     if (!id) return;
     setSaving(true);
     setError("");
@@ -288,8 +291,18 @@ export default function StaffOnboardingPage({ publicMode = false }: Props) {
         : await upsertStaffOnboarding(id, payload);
       setOnboarding(saved?.personal_information ? saved : payload);
       setExists(true);
-      setMessage("Onboarding form saved successfully.");
-      if (!publicMode) setSearchParams({});
+      setMessage(
+        finalize
+          ? "Onboarding form submitted successfully."
+          : "Progress saved successfully. You can continue editing.",
+      );
+      if (finalize) {
+        if (publicMode) {
+          setPublicFinalized(true);
+        } else {
+          setSearchParams({});
+        }
+      }
     } catch (requestError: any) {
       const parsedError = parseApiError(requestError);
       setError(parsedError.message);
@@ -395,12 +408,14 @@ export default function StaffOnboardingPage({ publicMode = false }: Props) {
           showHrUseOnly={!publicMode}
           staffOptions={staffOptions}
           verifiedBy={loggedInStaffName}
+          saving={saving}
           fieldErrors={fieldErrors}
           onChange={(nextValue) => {
             setOnboarding(nextValue);
             if (Object.keys(fieldErrors).length) setFieldErrors({});
           }}
-          onSubmit={save}
+          onSaveProgress={() => save(false)}
+          onSubmit={() => save(true)}
         />
       )}
       </div>

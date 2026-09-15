@@ -27,7 +27,7 @@ const Sidebar: React.FC<ISideBarType> = ({ onLinkChange }) => {
   const { confirm } = Modal;
 
   const authData: IAdminAuthType = useAppSelector(
-    (state: RootState) => state?.AdminAuthData
+    (state: RootState) => state?.AdminAuthData,
   );
 
   const navigate = useNavigate();
@@ -74,6 +74,33 @@ const Sidebar: React.FC<ISideBarType> = ({ onLinkChange }) => {
       url: "/admin/staff-login",
       title: "Staff",
     },
+
+    {
+      icon: <ToolOutlined />,
+      url: "/admin/coming-soon",
+      title: "Leave Applications",
+    },
+    {
+      icon: <ToolOutlined />,
+      url: "/admin/coming-soon",
+      title: "Leave Approval",
+    },
+
+    {
+      icon: <ToolOutlined />,
+      url: "/admin/coming-soon",
+      title: "Request Approval",
+    },
+    {
+      icon: <ToolOutlined />,
+      url: "/admin/coming-soon",
+      title: "Request Submission",
+    },
+    {
+      icon: <ToolOutlined />,
+      url: "/admin/coming-soon",
+      title: "Payroll Management",
+    },
     {
       icon: <SettingOutlined />,
       url: "/admin/settings",
@@ -88,7 +115,6 @@ const Sidebar: React.FC<ISideBarType> = ({ onLinkChange }) => {
       title: "Logout",
     },
   ];
-
 
   useEffect(() => {
     // execute on location change
@@ -131,8 +157,9 @@ const Sidebar: React.FC<ISideBarType> = ({ onLinkChange }) => {
             <span>
               <img
                 style={{ width: "200px" }}
-                src={`${process.env.REACT_APP_LOGO_Image || "/images/logo_red.png"
-                  }`}
+                src={`${
+                  process.env.REACT_APP_LOGO_Image || "/images/logo_red.png"
+                }`}
                 alt=""
                 className="mx-auto block rounded-2xl"
               />

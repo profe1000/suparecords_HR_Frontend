@@ -4,6 +4,7 @@ import {
   StaffOnboardingStatus,
   StaffReference,
 } from "./staffLogin.types";
+import { places } from "../../../apiservice/places";
 
 type Props = {
   formId: string;
@@ -13,8 +14,10 @@ type Props = {
   showHrUseOnly?: boolean;
   staffOptions?: Array<{ id: number; name: string }>;
   verifiedBy?: string;
+  saving?: boolean;
   fieldErrors?: Record<string, string>;
   onChange: (value: StaffOnboarding) => void;
+  onSaveProgress: () => void;
   onSubmit: () => void;
 };
 
@@ -63,6 +66,17 @@ const arrayFields = new Set([
 ]);
 
 const selectOptions: Record<string, Array<{ label: string; value: string }>> = {
+  gender: [
+    { label: "Male", value: "MALE" },
+    { label: "Female", value: "FEMALE" },
+  ],
+  marital_status: [
+    { label: "Single", value: "SINGLE" },
+    { label: "Married", value: "MARRIED" },
+    { label: "Divorced", value: "DIVORCED" },
+    { label: "Widowed", value: "WIDOWED" },
+    { label: "Separated", value: "SEPARATED" },
+  ],
   employment_status: [
     { label: "Active", value: "ACTIVE" },
     { label: "Inactive", value: "INACTIVE" },
@@ -100,6 +114,23 @@ const selectOptions: Record<string, Array<{ label: string; value: string }>> = {
   ],
 };
 
+const nationalityOptions = places
+  .filter((place) => place.nationality)
+  .map((place) => ({ label: place.nationality.trim(), value: place.nationality.trim() }))
+  .filter(
+    (option, index, options) =>
+      options.findIndex((item) => item.value === option.value) === index,
+  )
+  .sort((first, second) => {
+    if (first.value === "Nigerian") return -1;
+    if (second.value === "Nigerian") return 1;
+    return first.label.localeCompare(second.label);
+  });
+
+const nigeriaStateOptions = (places.find((place) => place.name === "Nigeria")?.states || [])
+  .map((state) => ({ label: state.name, value: state.name }))
+  .sort((first, second) => first.label.localeCompare(second.label));
+
 const labelFor = (key: string) =>
   key
     .split("_")
@@ -114,12 +145,28 @@ export default function StaffOnboardingForm({
   showHrUseOnly = true,
   staffOptions = [],
   verifiedBy = "",
+  saving = false,
   fieldErrors = {},
   onChange,
+  onSaveProgress,
   onSubmit,
 }: Props) {
   const inputClass =
     "mt-1 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-red-700 focus:ring-2 focus:ring-red-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-600";
+
+  const saveButton = (sectionName: string) =>
+    !readOnly && (
+      <div className="mt-5 flex justify-end border-t border-slate-100 pt-4">
+        <button
+          type="button"
+          onClick={onSaveProgress}
+          disabled={saving}
+          className="rounded-lg bg-red-800 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-900 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {saving ? "Saving..." : `Save ${sectionName}`}
+        </button>
+      </div>
+    );
 
   const updateSection = (section: SectionKey, key: string, nextValue: unknown) => {
     onChange({
@@ -153,6 +200,10 @@ export default function StaffOnboardingForm({
             : []),
           ...staffOptions.map((staff) => ({ label: staff.name, value: staff.name })),
         ]
+      : key === "nationality"
+        ? nationalityOptions
+        : key === "state_lga" && value.personal_information.nationality === "Nigerian"
+          ? nigeriaStateOptions
       : selectOptions[key];
 
     if (typeof fieldValue === "boolean") {
@@ -184,7 +235,20 @@ export default function StaffOnboardingForm({
           <select
             value={displayValue}
             disabled={readOnly}
-            onChange={(event) => updateSection(section, key, event.target.value)}
+            onChange={(event) => {
+              if (key === "nationality") {
+                onChange({
+                  ...value,
+                  personal_information: {
+                    ...value.personal_information,
+                    nationality: event.target.value,
+                    state_lga: "",
+                  },
+                });
+                return;
+              }
+              updateSection(section, key, event.target.value);
+            }}
             className={inputClass}
           >
             <option value="">Select {labelFor(key).toLowerCase()}</option>
@@ -274,6 +338,7 @@ export default function StaffOnboardingForm({
               <option value="VERIFIED">Verified</option>
             </select>
           </label>
+          {saveButton("Status")}
         </div>
       )}
 
@@ -287,6 +352,7 @@ export default function StaffOnboardingForm({
               renderField(section, key, fieldValue),
             )}
           </div>
+          {saveButton(sectionTitles[section])}
         </section>
       ))}
 
@@ -371,6 +437,7 @@ export default function StaffOnboardingForm({
             </div>
           ))}
         </div>
+        {saveButton("References")}
       </section>
     </form>
   );
