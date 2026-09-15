@@ -9,6 +9,7 @@ import Tasks from "./RoomMaintenance/RoomMaintenance";
 import StaffLogin from "./StaffLogin/StaffLogin";
 import StaffDetails from "./StaffLogin/StaffDetails";
 import StaffOnboarding from "./StaffLogin/StaffOnboarding";
+import ComingSoon from "./ComingSoon/ComingSoon";
 import ScrollToTop from "../../utils/scrollToTop";
 
 const AdminPagesRoutes = () => {
@@ -22,6 +23,7 @@ const AdminPagesRoutes = () => {
         <Route path="/staff-login" element={<StaffLogin />} />
         <Route path="/staff-login/:id" element={<StaffDetails />} />
         <Route path="/staff-login/:id/onboarding" element={<StaffOnboarding />} />
+        <Route path="/coming-soon/:feature" element={<ComingSoon />} />
         <Route path="/logout" element={<AdminLogout />} />
         <Route path="*" element={<Nopage />} />
       </Route>

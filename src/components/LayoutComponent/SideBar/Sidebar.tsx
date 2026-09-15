@@ -12,6 +12,11 @@ import {
   SettingOutlined,
   LogoutOutlined,
   ToolOutlined,
+  CalendarOutlined,
+  CheckCircleOutlined,
+  AuditOutlined,
+  FormOutlined,
+  DollarOutlined,
 } from "@ant-design/icons";
 import { IAdminAuthType } from "../../../apiservice/admin-AuthService.type";
 
@@ -76,29 +81,29 @@ const Sidebar: React.FC<ISideBarType> = ({ onLinkChange }) => {
     },
 
     {
-      icon: <ToolOutlined />,
-      url: "/admin/coming-soon",
+      icon: <CalendarOutlined />,
+      url: "/admin/coming-soon/leave-applications",
       title: "Leave Applications",
     },
     {
-      icon: <ToolOutlined />,
-      url: "/admin/coming-soon",
+      icon: <CheckCircleOutlined />,
+      url: "/admin/coming-soon/leave-approval",
       title: "Leave Approval",
     },
 
     {
-      icon: <ToolOutlined />,
-      url: "/admin/coming-soon",
+      icon: <AuditOutlined />,
+      url: "/admin/coming-soon/request-approval",
       title: "Request Approval",
     },
     {
-      icon: <ToolOutlined />,
-      url: "/admin/coming-soon",
+      icon: <FormOutlined />,
+      url: "/admin/coming-soon/request-submission",
       title: "Request Submission",
     },
     {
-      icon: <ToolOutlined />,
-      url: "/admin/coming-soon",
+      icon: <DollarOutlined />,
+      url: "/admin/coming-soon/payroll-management",
       title: "Payroll Management",
     },
     {
