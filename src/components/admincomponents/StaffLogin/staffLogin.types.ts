@@ -34,6 +34,11 @@ export interface StaffFormValues {
   staff_role_id: string;
 }
 
+export type StaffUpdateValues = Omit<StaffFormValues, "password"> & {
+  password?: string;
+  status: StaffStatus;
+};
+
 export interface StaffListResponse {
   status: string;
   message: string;

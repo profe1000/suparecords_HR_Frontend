@@ -5,6 +5,9 @@ type Props = {
   records: StaffRecord[];
   roles: StaffRole[];
   loading?: boolean;
+  deletingId?: number | null;
+  onEdit: (record: StaffRecord) => void;
+  onDelete: (record: StaffRecord) => void;
 };
 
 const badgeClass = (value: StaffRecord["status"]) => {
@@ -13,9 +16,53 @@ const badgeClass = (value: StaffRecord["status"]) => {
   return "bg-rose-100 text-rose-700";
 };
 
-export default function StaffLoginList({ records, roles, loading }: Props) {
+export default function StaffLoginList({
+  records,
+  roles,
+  loading,
+  deletingId,
+  onEdit,
+  onDelete,
+}: Props) {
   const roleTitle = (roleId: string) =>
     roles.find((role) => role.id === roleId)?.title || "-";
+
+  const actions = (record: StaffRecord) => {
+    const protectedRecord = record.id === 1;
+    const deleting = deletingId === record.id;
+
+    return (
+      <div className="flex flex-wrap justify-end gap-2">
+        <Link
+          to={`/admin/staff-login/${record.id}`}
+          className="inline-flex rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+        >
+          View
+        </Link>
+        <button
+          type="button"
+          onClick={() => onEdit(record)}
+          disabled={deleting}
+          className="rounded-lg border border-blue-700 px-3 py-2 text-sm font-medium text-blue-800 transition hover:bg-blue-50 disabled:opacity-60"
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm(`Delete staff record for ${record.first_name} ${record.last_name}?`)) {
+              onDelete(record);
+            }
+          }}
+          disabled={protectedRecord || deleting}
+          title={protectedRecord ? "The first staff record cannot be deleted" : "Delete staff"}
+          className="rounded-lg border border-red-500 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
+        >
+          {protectedRecord ? "Protected" : deleting ? "Deleting..." : "Delete"}
+        </button>
+      </div>
+    );
+  };
 
   if (loading) {
     return <div className="py-10 text-center text-slate-500">Loading staff...</div>;
@@ -63,12 +110,7 @@ export default function StaffLoginList({ records, roles, loading }: Props) {
                   </span>
                 </td>
                 <td className="px-3 py-4 text-right">
-                  <Link
-                    to={`/admin/staff-login/${record.id}`}
-                    className="inline-flex rounded-lg border border-red-700 px-3 py-2 text-sm font-medium text-red-800 transition hover:bg-red-50"
-                  >
-                    View
-                  </Link>
+                  {actions(record)}
                 </td>
               </tr>
             ))}
@@ -101,12 +143,7 @@ export default function StaffLoginList({ records, roles, loading }: Props) {
                 <dd className="mt-1 text-sm font-medium text-slate-800">{record.department || "-"}</dd>
               </div>
             </dl>
-            <Link
-              to={`/admin/staff-login/${record.id}`}
-              className="mt-4 inline-flex w-full justify-center rounded-lg border border-red-700 px-3 py-2 text-sm font-medium text-red-800 transition hover:bg-red-50"
-            >
-              View Details
-            </Link>
+            <div className="mt-4">{actions(record)}</div>
           </article>
         ))}
       </div>

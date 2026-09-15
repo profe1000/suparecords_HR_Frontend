@@ -4,6 +4,7 @@ import useAuth from "./hooks/useAuth";
 import Nopage from "./pages/Nopage/Nopage";
 import AdminAuthRoutes from "./pages/adminAuthentication/adminAuthRoute";
 import AdminPagesRoutes from "./pages/adminDashboard/adminPagesRoute";
+import StaffOnboarding from "./pages/adminDashboard/StaffLogin/StaffOnboarding";
 
 const App = () => {
   const authState = useAuth();
@@ -13,6 +14,7 @@ const App = () => {
       <Routes>
         <Route index element={<AdminAuthRoutes ></AdminAuthRoutes >} />
         <Route path="auth/*" element={<AdminAuthRoutes ></AdminAuthRoutes >} />
+        <Route path="onboarding/:id" element={<StaffOnboarding publicMode />} />
         <Route path="admin/*" element={<AdminPagesRoutes></AdminPagesRoutes>} />
         <Route path="*" element={<Nopage />} />
       </Routes>

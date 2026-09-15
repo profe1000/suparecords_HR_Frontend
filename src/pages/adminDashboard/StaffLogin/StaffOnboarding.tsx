@@ -5,7 +5,9 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   getStaff,
   getStaffOnboarding,
+  getPublicStaffOnboarding,
   upsertStaffOnboarding,
+  upsertPublicStaffOnboarding,
 } from "../../../apiservice/staff-service";
 import StaffOnboardingForm from "../../../components/admincomponents/StaffLogin/StaffOnboardingForm";
 import {
@@ -103,10 +105,14 @@ const emptyOnboarding = (staff?: StaffRecord | null): StaffOnboarding => ({
   onboarding_status: "DRAFT",
 });
 
-export default function StaffOnboardingPage() {
+type Props = {
+  publicMode?: boolean;
+};
+
+export default function StaffOnboardingPage({ publicMode = false }: Props) {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const editing = searchParams.get("mode") === "edit";
+  const editing = publicMode || searchParams.get("mode") === "edit";
   const [staff, setStaff] = useState<StaffRecord | null>(null);
   const [onboarding, setOnboarding] = useState<StaffOnboarding>(emptyOnboarding());
   const [exists, setExists] = useState(false);
@@ -127,10 +133,12 @@ export default function StaffOnboardingPage() {
       setLoading(true);
       setError("");
       try {
-        const staffRecord = await getStaff(id);
+        const staffRecord = publicMode ? null : await getStaff(id);
         setStaff(staffRecord);
         try {
-          const onboardingRecord = await getStaffOnboarding(id);
+          const onboardingRecord = publicMode
+            ? await getPublicStaffOnboarding(id)
+            : await getStaffOnboarding(id);
           setOnboarding(onboardingRecord);
           setExists(true);
         } catch (requestError: any) {
@@ -155,7 +163,7 @@ export default function StaffOnboardingPage() {
     };
 
     load();
-  }, [id]);
+  }, [id, publicMode]);
 
   const save = async () => {
     if (!id) return;
@@ -163,11 +171,13 @@ export default function StaffOnboardingPage() {
     setError("");
     setMessage("");
     try {
-      const saved = await upsertStaffOnboarding(id, onboarding);
+      const saved = publicMode
+        ? await upsertPublicStaffOnboarding(id, onboarding)
+        : await upsertStaffOnboarding(id, onboarding);
       setOnboarding(saved?.personal_information ? saved : onboarding);
       setExists(true);
       setMessage("Onboarding form saved successfully.");
-      setSearchParams({});
+      if (!publicMode) setSearchParams({});
     } catch (requestError: any) {
       setError(
         requestError?.response?.data?.detail ||
@@ -189,22 +199,28 @@ export default function StaffOnboardingPage() {
 
   return (
     <div className="min-h-full bg-slate-50 p-4 sm:p-6">
-      <Link
-        to={id ? `/admin/staff-login/${id}` : "/admin/staff-login"}
-        className="inline-flex items-center gap-2 text-sm font-medium text-red-800 hover:text-red-950"
-      >
-        <ArrowLeftOutlined /> Back to staff details
-      </Link>
+      {!publicMode && (
+        <Link
+          to={id ? `/admin/staff-login/${id}` : "/admin/staff-login"}
+          className="inline-flex items-center gap-2 text-sm font-medium text-red-800 hover:text-red-950"
+        >
+          <ArrowLeftOutlined /> Back to staff details
+        </Link>
+      )}
 
-      <div className="my-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className={`${publicMode ? "mb-5" : "my-5"} flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between`}>
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Staff Onboarding</h1>
           <p className="mt-1 text-sm text-slate-500">
-            {staff ? `${staff.first_name} ${staff.last_name}` : "Staff record"}
+            {staff
+              ? `${staff.first_name} ${staff.last_name}`
+              : publicMode
+                ? "Complete and submit your employment information."
+                : "Staff record"}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {exists && editing && (
+          {exists && editing && !publicMode && (
             <button
               type="button"
               onClick={() => setSearchParams({})}
@@ -213,7 +229,7 @@ export default function StaffOnboardingPage() {
               <EyeOutlined /> View Form
             </button>
           )}
-          {!editing && (
+          {!editing && !publicMode && (
             <button
               type="button"
               onClick={() => setSearchParams({ mode: "edit" })}

@@ -4,8 +4,19 @@ import { useEffect, useState } from "react";
 import { appZIndex } from "../../../utils/appconst";
 import AddEditStaffLoginForm from "./AddEditStaffLoginForm";
 import StaffLoginList from "./StaffLoginList";
-import { StaffFormValues, StaffRecord, StaffRole } from "./staffLogin.types";
-import { createStaff, getStaffRoles, getStaffs } from "../../../apiservice/staff-service";
+import {
+  StaffFormValues,
+  StaffRecord,
+  StaffRole,
+  StaffUpdateValues,
+} from "./staffLogin.types";
+import {
+  createStaff,
+  deleteStaff,
+  getStaffRoles,
+  getStaffs,
+  updateStaff,
+} from "../../../apiservice/staff-service";
 import { useAppSelector } from "../../../Redux/reduxCustomHook";
 import type { RootState } from "../../../Redux/store";
 
@@ -13,10 +24,12 @@ export default function StaffLoginWrapper() {
   const [records, setRecords] = useState<StaffRecord[]>([]);
   const [roles, setRoles] = useState<StaffRole[]>([]);
   const [search, setSearch] = useState("");
+  const [editingRecord, setEditingRecord] = useState<StaffRecord | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const formId = "staff-login-form";
   const authData = useAppSelector((state: RootState) => state.AdminAuthData);
@@ -52,20 +65,64 @@ export default function StaffLoginWrapper() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branchId, search]);
 
-  const openAddModal = () => setModalOpen(true);
-  const closeModal = () => setModalOpen(false);
+  const openAddModal = () => {
+    setEditingRecord(null);
+    setModalOpen(true);
+  };
+  const openEditModal = (record: StaffRecord) => {
+    setEditingRecord(record);
+    setModalOpen(true);
+  };
+  const closeModal = () => {
+    setModalOpen(false);
+    setEditingRecord(null);
+  };
 
-  const saveRecord = async (values: StaffFormValues) => {
+  const saveRecord = async (values: StaffFormValues | StaffUpdateValues) => {
     setSubmitting(true);
+    setError("");
     try {
-      await createStaff({ ...values, branch_id: branchId });
-      setMessage("Staff created successfully.");
+      if (editingRecord) {
+        await updateStaff(editingRecord.id, values as StaffUpdateValues);
+        setMessage("Staff updated successfully.");
+      } else {
+        await createStaff({ ...(values as StaffFormValues), branch_id: branchId });
+        setMessage("Staff created successfully.");
+      }
       closeModal();
       await loadStaff();
     } catch (requestError: any) {
-      setError(requestError?.response?.data?.message || "Unable to create staff.");
+      setError(
+        requestError?.response?.data?.detail ||
+          requestError?.response?.data?.message ||
+          `Unable to ${editingRecord ? "update" : "create"} staff.`,
+      );
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const removeRecord = async (record: StaffRecord) => {
+    if (record.id === 1) {
+      setError("The first staff record cannot be deleted.");
+      return;
+    }
+
+    setDeletingId(record.id);
+    setError("");
+    try {
+      await deleteStaff(record.id);
+      setMessage("Staff deleted successfully.");
+      await loadStaff();
+    } catch (requestError: any) {
+      setError(
+        requestError?.response?.data?.detail ||
+          requestError?.response?.data?.message ||
+          requestError?.message ||
+          "Unable to delete staff.",
+      );
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -126,14 +183,21 @@ export default function StaffLoginWrapper() {
         )}
 
         <div className="p-3 sm:p-4">
-          <StaffLoginList records={records} roles={roles} loading={loading} />
+          <StaffLoginList
+            records={records}
+            roles={roles}
+            loading={loading}
+            deletingId={deletingId}
+            onEdit={openEditModal}
+            onDelete={removeRecord}
+          />
         </div>
       </section>
 
       <Modal
         zIndex={appZIndex.modal}
         open={modalOpen}
-        title="Add Staff"
+        title={editingRecord ? "Edit Staff" : "Add Staff"}
         onCancel={closeModal}
         footer={null}
         destroyOnClose
@@ -142,12 +206,18 @@ export default function StaffLoginWrapper() {
       >
         <div style={{ maxHeight: "80vh", overflowY: "scroll" }}>
           <div className="space-y-5">
-            <p className="text-sm text-slate-500">Use the form below to create a new staff account.</p>
+            <p className="text-sm text-slate-500">
+              {editingRecord
+                ? "Update the staff account details. Leave password blank to keep it unchanged."
+                : "Use the form below to create a new staff account."}
+            </p>
 
             <AddEditStaffLoginForm
+              key={editingRecord?.id || "new"}
               formId={formId}
               branchId={branchId}
               roles={roles}
+              initialValues={editingRecord}
               onSubmit={saveRecord}
             />
 
@@ -167,7 +237,7 @@ export default function StaffLoginWrapper() {
                 className="inline-flex items-center gap-2 rounded-lg bg-red-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-900 disabled:opacity-60"
               >
                 {submitting && <LoadingOutlined />}
-                Create Staff
+                {editingRecord ? "Save Changes" : "Create Staff"}
               </button>
             </div>
           </div>

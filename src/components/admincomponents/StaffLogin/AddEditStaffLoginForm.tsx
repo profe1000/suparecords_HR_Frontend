@@ -1,33 +1,42 @@
 import { FormEvent, useState } from "react";
-import { StaffFormValues, StaffRole } from "./staffLogin.types";
+import {
+  StaffFormValues,
+  StaffRecord,
+  StaffRole,
+  StaffUpdateValues,
+} from "./staffLogin.types";
 
 type Props = {
   formId: string;
   branchId: number;
   roles: StaffRole[];
-  onSubmit: (values: StaffFormValues) => void;
+  initialValues?: StaffRecord | null;
+  onSubmit: (values: StaffFormValues | StaffUpdateValues) => void;
 };
 
 export default function AddEditStaffLoginForm({
   formId,
   branchId,
   roles,
+  initialValues,
   onSubmit,
 }: Props) {
-  const [values, setValues] = useState<StaffFormValues>({
-    first_name: "",
-    last_name: "",
-    email: "",
+  const editing = Boolean(initialValues);
+  const [values, setValues] = useState<StaffUpdateValues>({
+    first_name: initialValues?.first_name || "",
+    last_name: initialValues?.last_name || "",
+    email: initialValues?.email || "",
     password: "",
-    branch_id: branchId,
-    phone: "",
-    department: "",
-    staff_role_id: roles[0]?.id || "",
+    branch_id: initialValues?.branch_id || branchId,
+    phone: initialValues?.phone || "",
+    department: initialValues?.department || "",
+    staff_role_id: initialValues?.staff_role_id || roles[0]?.id || "",
+    status: initialValues?.status || "ACTIVE",
   });
 
-  const update = <K extends keyof StaffFormValues>(
+  const update = <K extends keyof StaffUpdateValues>(
     key: K,
-    value: StaffFormValues[K],
+    value: StaffUpdateValues[K],
   ) => setValues((current) => ({ ...current, [key]: value }));
 
   const inputClass =
@@ -38,7 +47,13 @@ export default function AddEditStaffLoginForm({
       id={formId}
       onSubmit={(event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        onSubmit(values);
+        if (editing) {
+          const updateValues = { ...values };
+          if (!updateValues.password) delete updateValues.password;
+          onSubmit(updateValues);
+        } else {
+          onSubmit(values as StaffFormValues);
+        }
       }}
       className="space-y-4"
     >
@@ -77,9 +92,9 @@ export default function AddEditStaffLoginForm({
         </label>
 
         <label className="block text-sm font-medium text-slate-700">
-          Password <span className="text-red-600">*</span>
+          Password {!editing && <span className="text-red-600">*</span>}
           <input
-            required
+            required={!editing}
             type="password"
             value={values.password}
             onChange={(event) => update("password", event.target.value)}
@@ -108,22 +123,39 @@ export default function AddEditStaffLoginForm({
         </label>
       </div>
 
-      <label className="block text-sm font-medium text-slate-700">
-        Staff role <span className="text-red-600">*</span>
-        <select
-          required
-          value={values.staff_role_id}
-          onChange={(event) => update("staff_role_id", event.target.value)}
-          className={`${inputClass} bg-white`}
-        >
-          <option value="">Select a role</option>
-          {roles.map((role) => (
-            <option key={role.id} value={role.id}>
-              {role.title}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label className="block text-sm font-medium text-slate-700">
+          Staff role <span className="text-red-600">*</span>
+          <select
+            required
+            value={values.staff_role_id}
+            onChange={(event) => update("staff_role_id", event.target.value)}
+            className={`${inputClass} bg-white`}
+          >
+            <option value="">Select a role</option>
+            {roles.map((role) => (
+              <option key={role.id} value={role.id}>
+                {role.title}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {editing && (
+          <label className="block text-sm font-medium text-slate-700">
+            Status
+            <select
+              value={values.status}
+              onChange={(event) => update("status", event.target.value as StaffUpdateValues["status"])}
+              className={`${inputClass} bg-white`}
+            >
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+              <option value="SUSPENDED">Suspended</option>
+            </select>
+          </label>
+        )}
+      </div>
     </form>
   );
 }

@@ -7,6 +7,7 @@ import {
   StaffRecord,
   StaffRole,
   StaffRoleListResponse,
+  StaffUpdateValues,
 } from "../components/admincomponents/StaffLogin/staffLogin.types";
 
 const staffPath = "v1/staffs/";
@@ -48,9 +49,45 @@ export const upsertStaffOnboarding = async (
   return data?.data || data;
 };
 
+export const getPublicStaffOnboarding = async (
+  staffId: number | string,
+): Promise<StaffOnboarding> => {
+  const axios = await instance("", null, true, true);
+  const { data } = await axios.get(`${staffPath}${staffId}/onboarding`);
+  return data?.data || data;
+};
+
+export const upsertPublicStaffOnboarding = async (
+  staffId: number | string,
+  body: StaffOnboarding,
+) => {
+  const axios = await instance("", null, true, true);
+  const { data } = await axios.put(`${staffPath}${staffId}/onboarding`, body);
+  return data?.data || data;
+};
+
 export const createStaff = async (body: StaffFormValues) => {
   const axios = await instance(null, null, true, true);
   const { data } = await axios.post(staffPath, body);
+  return data;
+};
+
+export const updateStaff = async (
+  staffId: number | string,
+  body: StaffUpdateValues,
+) => {
+  const axios = await instance(null, null, true, true);
+  const { data } = await axios.put(`${staffPath}${staffId}`, body);
+  return data?.data || data;
+};
+
+export const deleteStaff = async (staffId: number | string) => {
+  if (Number(staffId) === 1) {
+    throw new Error("The first staff record cannot be deleted.");
+  }
+
+  const axios = await instance(null, null, true, true);
+  const { data } = await axios.delete(`${staffPath}${staffId}`);
   return data;
 };
 

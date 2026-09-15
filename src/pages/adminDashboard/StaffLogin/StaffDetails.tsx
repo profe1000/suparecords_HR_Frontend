@@ -1,5 +1,5 @@
-import { ArrowLeftOutlined, EditOutlined, EyeOutlined, MailOutlined, PhoneOutlined, TeamOutlined } from "@ant-design/icons";
-import { Spin } from "antd";
+import { ArrowLeftOutlined, CopyOutlined, EditOutlined, EyeOutlined, MailOutlined, PhoneOutlined, TeamOutlined } from "@ant-design/icons";
+import { message, Spin } from "antd";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getStaff, getStaffRole } from "../../../apiservice/staff-service";
@@ -20,6 +20,16 @@ export default function StaffDetails() {
   const [role, setRole] = useState<StaffRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const copyPublicOnboardingLink = async (staffId: number) => {
+    const publicUrl = `${window.location.origin}/onboarding/${staffId}`;
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      message.success("Public onboarding link copied.");
+    } catch {
+      message.error("Unable to copy the onboarding link.");
+    }
+  };
 
   useEffect(() => {
     const loadStaff = async () => {
@@ -106,6 +116,13 @@ export default function StaffDetails() {
               >
                 <EditOutlined /> Upsert Onboarding
               </Link>
+              <button
+                type="button"
+                onClick={() => copyPublicOnboardingLink(staff.id)}
+                className="inline-flex items-center gap-2 rounded-lg border border-red-700 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-50"
+              >
+                <CopyOutlined /> Copy Public Link
+              </button>
             </div>
           </div>
         </div>
