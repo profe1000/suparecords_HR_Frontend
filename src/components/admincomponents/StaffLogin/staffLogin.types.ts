@@ -1,4 +1,5 @@
 export type StaffStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
+export type StaffOnboardingStatus = "DRAFT" | "SUBMITTED" | "VERIFIED";
 
 export interface StaffRole {
   id: string;
@@ -68,7 +69,7 @@ export interface StaffOnboarding {
     first_name: string;
     middle_name: string;
     last_name: string;
-    date_of_birth: string;
+    date_of_birth: string | null;
     gender: string;
     marital_status: string;
     nationality: string;
@@ -78,14 +79,14 @@ export interface StaffOnboarding {
     state_lga: string;
   };
   employment_information: {
-    date_of_employment: string;
+    date_of_employment: string | null;
     department: string;
     job_title: string;
     staff_role: string;
     branch_location: string;
     reporting_manager: string;
     employment_status: string;
-    probation_end_date: string;
+    probation_end_date: string | null;
     employment_type: string;
   };
   emergency_contact: ContactInformation;
@@ -126,7 +127,7 @@ export interface StaffOnboarding {
   references: StaffReference[];
   reference_verification: {
     reference_checked_by: string;
-    date_checked: string;
+    date_checked: string | null;
     verification_status: string;
     hr_remarks: string;
   };
@@ -134,16 +135,16 @@ export interface StaffOnboarding {
     information_confirmed: boolean;
     employee_signature: string;
     hr_officer: string;
-    date: string;
+    date: string | null;
     authorized_signature: string;
   };
   hr_use_only: {
     employee_record_number: string;
-    date_received: string;
+    date_received: string | null;
     verified_by: string;
-    verification_date: string;
+    verification_date: string | null;
   };
-  onboarding_status: string;
+  onboarding_status: StaffOnboardingStatus;
 }
 
 export interface ContactInformation {

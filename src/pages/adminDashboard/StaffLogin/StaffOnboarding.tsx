@@ -105,6 +105,78 @@ const emptyOnboarding = (staff?: StaffRecord | null): StaffOnboarding => ({
   onboarding_status: "DRAFT",
 });
 
+type ApiValidationDetail = {
+  loc?: Array<string | number>;
+  msg?: string;
+};
+
+const localToday = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const normalizeOnboardingDates = (value: StaffOnboarding): StaffOnboarding => {
+  const today = localToday();
+
+  return {
+    ...value,
+    personal_information: {
+      ...value.personal_information,
+      date_of_birth: value.personal_information.date_of_birth || null,
+    },
+    employment_information: {
+      ...value.employment_information,
+      date_of_employment: value.employment_information.date_of_employment || today,
+      probation_end_date: value.employment_information.probation_end_date || today,
+    },
+    reference_verification: {
+      ...value.reference_verification,
+      date_checked: value.reference_verification.date_checked || today,
+    },
+    declaration: {
+      ...value.declaration,
+      date: value.declaration.date || today,
+    },
+    hr_use_only: {
+      ...value.hr_use_only,
+      date_received: value.hr_use_only.date_received || today,
+      verification_date: value.hr_use_only.verification_date || today,
+    },
+  };
+};
+
+const parseApiError = (requestError: any) => {
+  const detail = requestError?.response?.data?.detail;
+  if (!Array.isArray(detail)) {
+    return {
+      message:
+        detail ||
+        requestError?.response?.data?.message ||
+        "Unable to save onboarding form.",
+      fields: {},
+    };
+  }
+
+  const fields: Record<string, string> = {};
+  const messages = detail.map((item: ApiValidationDetail) => {
+    const path = (item.loc || []).filter((part) => part !== "body").join(".");
+    if (path && item.msg) fields[path] = item.msg;
+    const label = path
+      .split(".")
+      .map((part) => part.replace(/_/g, " "))
+      .join(" - ");
+    return `${label || "Form"}: ${item.msg || "Invalid value"}`;
+  });
+
+  return {
+    message: messages.join(" "),
+    fields,
+  };
+};
+
 type Props = {
   publicMode?: boolean;
 };
@@ -119,6 +191,7 @@ export default function StaffOnboardingPage({ publicMode = false }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const formId = "staff-onboarding-form";
 
@@ -169,21 +242,21 @@ export default function StaffOnboardingPage({ publicMode = false }: Props) {
     if (!id) return;
     setSaving(true);
     setError("");
+    setFieldErrors({});
     setMessage("");
     try {
+      const payload = normalizeOnboardingDates(onboarding);
       const saved = publicMode
-        ? await upsertPublicStaffOnboarding(id, onboarding)
-        : await upsertStaffOnboarding(id, onboarding);
-      setOnboarding(saved?.personal_information ? saved : onboarding);
+        ? await upsertPublicStaffOnboarding(id, payload)
+        : await upsertStaffOnboarding(id, payload);
+      setOnboarding(saved?.personal_information ? saved : payload);
       setExists(true);
       setMessage("Onboarding form saved successfully.");
       if (!publicMode) setSearchParams({});
     } catch (requestError: any) {
-      setError(
-        requestError?.response?.data?.detail ||
-          requestError?.response?.data?.message ||
-          "Unable to save onboarding form.",
-      );
+      const parsedError = parseApiError(requestError);
+      setError(parsedError.message);
+      setFieldErrors(parsedError.fields);
     } finally {
       setSaving(false);
     }
@@ -199,6 +272,7 @@ export default function StaffOnboardingPage({ publicMode = false }: Props) {
 
   return (
     <div className="min-h-full bg-slate-50 p-4 sm:p-6">
+      <div className={publicMode ? "mx-auto w-full max-w-5xl" : ""}>
       {!publicMode && (
         <Link
           to={id ? `/admin/staff-login/${id}` : "/admin/staff-login"}
@@ -280,10 +354,16 @@ export default function StaffOnboardingPage({ publicMode = false }: Props) {
           formId={formId}
           value={onboarding}
           readOnly={!editing}
-          onChange={setOnboarding}
+          showStatus={!publicMode}
+          fieldErrors={fieldErrors}
+          onChange={(nextValue) => {
+            setOnboarding(nextValue);
+            if (Object.keys(fieldErrors).length) setFieldErrors({});
+          }}
           onSubmit={save}
         />
       )}
+      </div>
     </div>
   );
 }

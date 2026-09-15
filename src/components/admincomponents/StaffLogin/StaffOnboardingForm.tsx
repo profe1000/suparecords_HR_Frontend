@@ -1,10 +1,16 @@
 import { FormEvent } from "react";
-import { StaffOnboarding, StaffReference } from "./staffLogin.types";
+import {
+  StaffOnboarding,
+  StaffOnboardingStatus,
+  StaffReference,
+} from "./staffLogin.types";
 
 type Props = {
   formId: string;
   value: StaffOnboarding;
   readOnly?: boolean;
+  showStatus?: boolean;
+  fieldErrors?: Record<string, string>;
   onChange: (value: StaffOnboarding) => void;
   onSubmit: () => void;
 };
@@ -63,6 +69,8 @@ export default function StaffOnboardingForm({
   formId,
   value,
   readOnly,
+  showStatus = true,
+  fieldErrors = {},
   onChange,
   onSubmit,
 }: Props) {
@@ -92,10 +100,12 @@ export default function StaffOnboardingForm({
 
   const renderField = (section: SectionKey, key: string, fieldValue: unknown) => {
     const fieldId = `${section}-${key}`;
+    const fieldPath = `${section}.${key}`;
+    const fieldError = fieldErrors[fieldPath];
 
     if (typeof fieldValue === "boolean") {
       return (
-        <label key={fieldId} className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 text-sm font-medium text-slate-700">
+        <label key={fieldId} className={`flex items-center gap-3 rounded-lg border p-3 text-sm font-medium text-slate-700 ${fieldError ? "border-red-400 bg-red-50" : "border-slate-200"}`}>
           <input
             type="checkbox"
             checked={fieldValue}
@@ -143,6 +153,7 @@ export default function StaffOnboardingForm({
                     ? "number"
                     : "text"
             }
+            required={key === "date_of_birth"}
             min={typeof fieldValue === "number" ? 0 : undefined}
             value={displayValue}
             disabled={readOnly}
@@ -161,6 +172,7 @@ export default function StaffOnboardingForm({
             className={inputClass}
           />
         )}
+        {fieldError && <span className="mt-1 block text-xs font-normal text-red-600">{fieldError}</span>}
       </label>
     );
   };
@@ -174,21 +186,28 @@ export default function StaffOnboardingForm({
       }}
       className="space-y-5"
     >
-      <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5">
-        <label className="block text-sm font-medium text-slate-700">
-          Onboarding Status
-          <select
-            value={value.onboarding_status}
-            disabled={readOnly}
-            onChange={(event) => onChange({ ...value, onboarding_status: event.target.value })}
-            className={inputClass}
-          >
-            <option value="DRAFT">Draft</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="COMPLETED">Completed</option>
-          </select>
-        </label>
-      </div>
+      {showStatus && (
+        <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5">
+          <label className="block text-sm font-medium text-slate-700">
+            Onboarding Status
+            <select
+              value={value.onboarding_status}
+              disabled={readOnly}
+              onChange={(event) =>
+                onChange({
+                  ...value,
+                  onboarding_status: event.target.value as StaffOnboardingStatus,
+                })
+              }
+              className={inputClass}
+            >
+              <option value="DRAFT">Draft</option>
+              <option value="SUBMITTED">Submitted</option>
+              <option value="VERIFIED">Verified</option>
+            </select>
+          </label>
+        </div>
+      )}
 
       {(Object.keys(sectionTitles) as SectionKey[]).map((section) => (
         <section key={section} className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5">
