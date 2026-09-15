@@ -1,44 +1,38 @@
 import { FormEvent, useState } from "react";
-import { Room } from "../../../apiservice/rooms-service";
 import { StaffRecord } from "../StaffLogin/staffLogin.types";
 import {
-  MaintenanceLog,
-  MaintenanceLogFormValues,
-  MaintenancePriority,
-  MaintenanceStatus,
-  MaintenanceType,
+  Task,
+  TaskFormValues,
+  TaskPriority,
+  TaskStatus,
+  TaskType,
 } from "./roomMaintainance.types";
 
 type Props = {
   formId: string;
-  initialValues?: MaintenanceLog | null;
-  roomOptions: Room[];
+  initialValues?: Task | null;
   staffOptions: StaffRecord[];
-  defaultRoomId?: number;
-  onSubmit: (values: MaintenanceLogFormValues) => void;
+  onSubmit: (values: TaskFormValues) => void;
 };
 
 export default function AddEditRoomMaintainanceForm({
   formId,
   initialValues,
-  roomOptions,
   staffOptions,
-  defaultRoomId,
   onSubmit,
 }: Props) {
-  const [values, setValues] = useState<MaintenanceLogFormValues>({
-    room_id: initialValues?.room_id || defaultRoomId || roomOptions[0]?.id || 0,
+  const [values, setValues] = useState<TaskFormValues>({
     assigned_staff_id: initialValues?.assigned_staff_id ?? null,
     title: initialValues?.title || "",
     description: initialValues?.description || "",
-    maintenance_type: initialValues?.maintenance_type || "REPAIRS",
+    task_type: initialValues?.task_type || "Repairs",
     status: initialValues?.status || "OPEN",
     priority: initialValues?.priority || "MEDIUM",
   });
 
-  const update = <K extends keyof MaintenanceLogFormValues>(
+  const update = <K extends keyof TaskFormValues>(
     key: K,
-    value: MaintenanceLogFormValues[K],
+    value: TaskFormValues[K],
   ) => setValues((current) => ({ ...current, [key]: value }));
 
   const inputClass =
@@ -53,48 +47,26 @@ export default function AddEditRoomMaintainanceForm({
       }}
       className="space-y-4"
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-medium text-slate-700">
-          Room <span className="text-red-600">*</span>
-          <select
-            required
-            value={values.room_id}
-            onChange={(event) => update("room_id", Number(event.target.value))}
-            className={`${inputClass} bg-white`}
-          >
-            <option value="" disabled>
-              Select a room
+      <label className="block text-sm font-medium text-slate-700">
+        Assigned staff
+        <select
+          value={values.assigned_staff_id ?? ""}
+          onChange={(event) =>
+            update(
+              "assigned_staff_id",
+              event.target.value ? Number(event.target.value) : null,
+            )
+          }
+          className={`${inputClass} bg-white`}
+        >
+          <option value="">Unassigned</option>
+          {staffOptions.map((staff) => (
+            <option key={staff.id} value={staff.id}>
+              {staff.first_name} {staff.last_name}
             </option>
-            {roomOptions.map((room) => (
-              <option key={room.id} value={room.id}>
-                Room {room.room_number}
-                {room.floor ? ` (Floor ${room.floor})` : ""}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="block text-sm font-medium text-slate-700">
-          Assigned staff
-          <select
-            value={values.assigned_staff_id ?? ""}
-            onChange={(event) =>
-              update(
-                "assigned_staff_id",
-                event.target.value ? Number(event.target.value) : null,
-              )
-            }
-            className={`${inputClass} bg-white`}
-          >
-            <option value="">Unassigned</option>
-            {staffOptions.map((staff) => (
-              <option key={staff.id} value={staff.id}>
-                {staff.first_name} {staff.last_name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+          ))}
+        </select>
+      </label>
 
       <label className="block text-sm font-medium text-slate-700">
         Title <span className="text-red-600">*</span>
@@ -102,7 +74,7 @@ export default function AddEditRoomMaintainanceForm({
           required
           value={values.title}
           onChange={(event) => update("title", event.target.value)}
-          placeholder="e.g. Repair of Ac"
+          placeholder="e.g. Repair of Generator"
           className={inputClass}
         />
       </label>
@@ -119,17 +91,17 @@ export default function AddEditRoomMaintainanceForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <label className="block text-sm font-medium text-slate-700">
-          Maintenance type
+          Task type
           <select
-            value={values.maintenance_type}
+            value={values.task_type}
             onChange={(event) =>
-              update("maintenance_type", event.target.value as MaintenanceType)
+              update("task_type", event.target.value as TaskType)
             }
             className={`${inputClass} bg-white`}
           >
-            <option value="CLEANING">Cleaning</option>
-            <option value="REPAIRS">Repairs</option>
-            <option value="REPLACE">Replace</option>
+            <option value="Cleaning">Cleaning</option>
+            <option value="Repairs">Repairs</option>
+            <option value="Replace">Replace</option>
           </select>
         </label>
 
@@ -137,7 +109,7 @@ export default function AddEditRoomMaintainanceForm({
           Priority
           <select
             value={values.priority}
-            onChange={(event) => update("priority", event.target.value as MaintenancePriority)}
+            onChange={(event) => update("priority", event.target.value as TaskPriority)}
             className={`${inputClass} bg-white`}
           >
             <option value="LOW">Low</option>
@@ -151,7 +123,7 @@ export default function AddEditRoomMaintainanceForm({
           Status
           <select
             value={values.status}
-            onChange={(event) => update("status", event.target.value as MaintenanceStatus)}
+            onChange={(event) => update("status", event.target.value as TaskStatus)}
             className={`${inputClass} bg-white`}
           >
             <option value="OPEN">Open</option>

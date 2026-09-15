@@ -1,6 +1,6 @@
-export type MaintenanceType = "CLEANING" | "REPAIRS" | "REPLACE";
+export type TaskType = "Cleaning" | "Repairs" | "Replace" | string;
 
-export type MaintenanceStatus =
+export type TaskStatus =
   | "OPEN"
   | "IN_PROGRESS"
   | "RESOLVED"
@@ -8,42 +8,30 @@ export type MaintenanceStatus =
   | "PENDING"
   | string;
 
-export type MaintenancePriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | string;
+export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | string;
 
-export interface MaintenanceLog {
+export interface Task {
   id: number;
-  room_id: number;
   assigned_staff_id: number | null;
   title: string;
   description: string;
-  maintenance_type: MaintenanceType;
-  status: MaintenanceStatus;
-  priority: MaintenancePriority;
+  task_type: TaskType;
+  status: TaskStatus;
+  priority: TaskPriority;
   resolved_at: string | null;
   created_at: string;
   updated_at: string;
-  deleted_at: string | null;
-  created_by: number | null;
-  updated_by: number | null;
-  deleted_by: number | null;
 }
 
-export type MaintenanceLogFormValues = Omit<
-  MaintenanceLog,
-  | "id"
-  | "resolved_at"
-  | "created_at"
-  | "updated_at"
-  | "deleted_at"
-  | "created_by"
-  | "updated_by"
-  | "deleted_by"
+export type TaskFormValues = Omit<
+  Task,
+  "id" | "resolved_at" | "created_at" | "updated_at"
 >;
 
-export interface MaintenanceLogListResponse {
+export interface TaskListResponse {
   status: string;
   message: string;
-  data: MaintenanceLog[];
+  data: Task[];
   meta: {
     total: number;
     page: number;

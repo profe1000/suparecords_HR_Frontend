@@ -56,6 +56,7 @@ export interface IAdminDashboardTypeData {
   numberOfStaff: number;
   activeStaff: number;
   inActiveStaff: number;
+}
 
 export interface RoomsBookedPerDay {
   date: string;

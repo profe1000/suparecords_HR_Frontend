@@ -66,8 +66,8 @@ const Sidebar: React.FC<ISideBarType> = ({ onLinkChange }) => {
     },
     {
       icon: <ToolOutlined />,
-      url: "/admin/room-maintenance",
-      title: "Room Maintenance",
+      url: "/admin/tasks",
+      title: "Tasks",
     },
     {
       icon: <KeyOutlined />,

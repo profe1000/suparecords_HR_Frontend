@@ -5,7 +5,7 @@ import AdminLayout from "./AdminLayout/AdminLayout";
 import AdminHome from "./AdminHome/AdminHome";
 import AdminLogout from "./AdminLogout/AdminLogout";
 import AdminSettingsPage from "./AdminSettingsPage/AdminSettingsPage";
-import RoomMaintenance from "./RoomMaintenance/RoomMaintenance";
+import Tasks from "./RoomMaintenance/RoomMaintenance";
 import StaffLogin from "./StaffLogin/StaffLogin";
 import ScrollToTop from "../../utils/scrollToTop";
 
@@ -16,7 +16,7 @@ const AdminPagesRoutes = () => {
       <Route path="/" element={<AdminLayout />}>
         <Route index element={<AdminHome />} />
         <Route path="/settings" element={<AdminSettingsPage />} />
-        <Route path="/room-maintenance" element={<RoomMaintenance />} />
+        <Route path="/tasks" element={<Tasks />} />
         <Route path="/staff-login" element={<StaffLogin />} />
         <Route path="/logout" element={<AdminLogout />} />
         <Route path="*" element={<Nopage />} />
