@@ -22,7 +22,7 @@ export default function StaffDetails() {
   const [error, setError] = useState("");
 
   const copyPublicOnboardingLink = async (staffId: number) => {
-    const publicUrl = `${window.location.origin}/onboarding/${staffId}`;
+    const publicUrl = `${window.location.origin}/onboarding/${staffId}?branchId=${staff?.branch_id || ""}`;
     try {
       await navigator.clipboard.writeText(publicUrl);
       message.success("Public onboarding link copied.");

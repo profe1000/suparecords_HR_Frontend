@@ -26,6 +26,14 @@ export const getStaffs = async (query: StaffListQuery): Promise<StaffListRespons
   return data;
 };
 
+export const getPublicStaffs = async (
+  query: StaffListQuery,
+): Promise<StaffListResponse> => {
+  const axios = await instance("", null, true, true);
+  const { data } = await axios.get(`${staffPath}${convertObjToQueryParams(query)}`);
+  return data;
+};
+
 export const getStaff = async (staffId: number | string): Promise<StaffRecord> => {
   const axios = await instance(null, null, true, true);
   const { data } = await axios.get(`${staffPath}${staffId}`);

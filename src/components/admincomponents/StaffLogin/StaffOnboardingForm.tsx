@@ -10,6 +10,9 @@ type Props = {
   value: StaffOnboarding;
   readOnly?: boolean;
   showStatus?: boolean;
+  showHrUseOnly?: boolean;
+  staffOptions?: Array<{ id: number; name: string }>;
+  verifiedBy?: string;
   fieldErrors?: Record<string, string>;
   onChange: (value: StaffOnboarding) => void;
   onSubmit: () => void;
@@ -59,6 +62,44 @@ const arrayFields = new Set([
   "other_dependants",
 ]);
 
+const selectOptions: Record<string, Array<{ label: string; value: string }>> = {
+  employment_status: [
+    { label: "Active", value: "ACTIVE" },
+    { label: "Inactive", value: "INACTIVE" },
+    { label: "Suspended", value: "SUSPENDED" },
+  ],
+  employment_type: [
+    { label: "Full-Time", value: "FULL_TIME" },
+    { label: "Part-Time", value: "PART_TIME" },
+    { label: "Contract", value: "CONTRACT" },
+    { label: "Temporary", value: "TEMPORARY" },
+    { label: "Intern", value: "INTERN" },
+    { label: "Youth Corp", value: "YOUTH_CORP" },
+  ],
+  id_type: [
+    { label: "National Identification Number (NIN)", value: "NIN" },
+    { label: "International Passport", value: "INTERNATIONAL_PASSPORT" },
+    { label: "Driver's Licence", value: "DRIVERS_LICENCE" },
+    { label: "Permanent Voter's Card", value: "VOTERS_CARD" },
+  ],
+  highest_qualification: [
+    { label: "Primary School Certificate", value: "PRIMARY_SCHOOL_CERTIFICATE" },
+    { label: "SSCE / WAEC / NECO", value: "SSCE" },
+    { label: "OND", value: "OND" },
+    { label: "NCE", value: "NCE" },
+    { label: "HND", value: "HND" },
+    { label: "Bachelor's Degree", value: "BACHELORS_DEGREE" },
+    { label: "Master's Degree", value: "MASTERS_DEGREE" },
+    { label: "Doctorate", value: "DOCTORATE" },
+    { label: "Professional Qualification", value: "PROFESSIONAL_QUALIFICATION" },
+  ],
+  verification_status: [
+    { label: "Pending", value: "PENDING" },
+    { label: "Verified", value: "VERIFIED" },
+    { label: "Rejected", value: "REJECTED" },
+  ],
+};
+
 const labelFor = (key: string) =>
   key
     .split("_")
@@ -70,6 +111,9 @@ export default function StaffOnboardingForm({
   value,
   readOnly,
   showStatus = true,
+  showHrUseOnly = true,
+  staffOptions = [],
+  verifiedBy = "",
   fieldErrors = {},
   onChange,
   onSubmit,
@@ -102,6 +146,14 @@ export default function StaffOnboardingForm({
     const fieldId = `${section}-${key}`;
     const fieldPath = `${section}.${key}`;
     const fieldError = fieldErrors[fieldPath];
+    const options = key === "reporting_manager"
+      ? [
+          ...(fieldValue && !staffOptions.some((staff) => staff.name === fieldValue)
+            ? [{ label: String(fieldValue), value: String(fieldValue) }]
+            : []),
+          ...staffOptions.map((staff) => ({ label: staff.name, value: staff.name })),
+        ]
+      : selectOptions[key];
 
     if (typeof fieldValue === "boolean") {
       return (
@@ -119,14 +171,30 @@ export default function StaffOnboardingForm({
     }
 
     const isArray = arrayFields.has(key);
-    const displayValue = isArray
+    const displayValue = key === "verified_by" && verifiedBy
+      ? verifiedBy
+      : isArray
       ? (fieldValue as string[]).join(", ")
       : String(fieldValue ?? "");
 
     return (
       <label key={fieldId} className="block text-sm font-medium text-slate-700">
         {labelFor(key)}
-        {multilineFields.has(key) ? (
+        {options ? (
+          <select
+            value={displayValue}
+            disabled={readOnly}
+            onChange={(event) => updateSection(section, key, event.target.value)}
+            className={inputClass}
+          >
+            <option value="">Select {labelFor(key).toLowerCase()}</option>
+            {options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        ) : multilineFields.has(key) ? (
           <textarea
             value={displayValue}
             disabled={readOnly}
@@ -156,7 +224,7 @@ export default function StaffOnboardingForm({
             required={key === "date_of_birth"}
             min={typeof fieldValue === "number" ? 0 : undefined}
             value={displayValue}
-            disabled={readOnly}
+            disabled={readOnly || key === "verified_by"}
             placeholder={isArray ? "Separate entries with commas" : undefined}
             onChange={(event) =>
               updateSection(
@@ -209,7 +277,9 @@ export default function StaffOnboardingForm({
         </div>
       )}
 
-      {(Object.keys(sectionTitles) as SectionKey[]).map((section) => (
+      {(Object.keys(sectionTitles) as SectionKey[])
+        .filter((section) => showHrUseOnly || section !== "hr_use_only")
+        .map((section) => (
         <section key={section} className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5">
           <h2 className="mb-4 text-base font-semibold text-slate-900">{sectionTitles[section]}</h2>
           <div className="grid gap-4 md:grid-cols-2">

@@ -6,14 +6,18 @@ import {
   getStaff,
   getStaffOnboarding,
   getPublicStaffOnboarding,
+  getPublicStaffs,
   upsertStaffOnboarding,
   upsertPublicStaffOnboarding,
+  getStaffs,
 } from "../../../apiservice/staff-service";
 import StaffOnboardingForm from "../../../components/admincomponents/StaffLogin/StaffOnboardingForm";
 import {
   StaffOnboarding,
   StaffRecord,
 } from "../../../components/admincomponents/StaffLogin/staffLogin.types";
+import { useAppSelector } from "../../../Redux/reduxCustomHook";
+import type { RootState } from "../../../Redux/store";
 
 const emptyOnboarding = (staff?: StaffRecord | null): StaffOnboarding => ({
   personal_information: {
@@ -186,6 +190,7 @@ export default function StaffOnboardingPage({ publicMode = false }: Props) {
   const [searchParams, setSearchParams] = useSearchParams();
   const editing = publicMode || searchParams.get("mode") === "edit";
   const [staff, setStaff] = useState<StaffRecord | null>(null);
+  const [staffOptions, setStaffOptions] = useState<Array<{ id: number; name: string }>>([]);
   const [onboarding, setOnboarding] = useState<StaffOnboarding>(emptyOnboarding());
   const [exists, setExists] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -194,6 +199,10 @@ export default function StaffOnboardingPage({ publicMode = false }: Props) {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const formId = "staff-onboarding-form";
+  const authData = useAppSelector((state: RootState) => state.AdminAuthData);
+  const loggedInStaffName = authData.staff
+    ? `${authData.staff.first_name} ${authData.staff.last_name}`.trim()
+    : authData.data?.credentials?.fullName || "";
 
   useEffect(() => {
     const load = async () => {
@@ -238,6 +247,26 @@ export default function StaffOnboardingPage({ publicMode = false }: Props) {
     load();
   }, [id, publicMode]);
 
+  useEffect(() => {
+    const publicBranchId = Number(searchParams.get("branchId"));
+    const branchId = publicMode
+      ? publicBranchId
+      : authData.staff?.branch_id || authData.data?.id || 1;
+    if (!branchId) return;
+
+    const loadStaffOptions = publicMode ? getPublicStaffs : getStaffs;
+    loadStaffOptions({ branch_id: branchId, page: 1, perPage: 200, sort_order: "asc" })
+      .then((response) =>
+        setStaffOptions(
+          (response.data || []).map((record) => ({
+            id: record.id,
+            name: `${record.first_name} ${record.last_name}`.trim(),
+          })),
+        ),
+      )
+      .catch(() => setStaffOptions([]));
+  }, [authData.data?.id, authData.staff?.branch_id, publicMode, searchParams]);
+
   const save = async () => {
     if (!id) return;
     setSaving(true);
@@ -245,7 +274,15 @@ export default function StaffOnboardingPage({ publicMode = false }: Props) {
     setFieldErrors({});
     setMessage("");
     try {
-      const payload = normalizeOnboardingDates(onboarding);
+      const payload = normalizeOnboardingDates({
+        ...onboarding,
+        hr_use_only: {
+          ...onboarding.hr_use_only,
+          verified_by: publicMode
+            ? onboarding.hr_use_only.verified_by
+            : loggedInStaffName,
+        },
+      });
       const saved = publicMode
         ? await upsertPublicStaffOnboarding(id, payload)
         : await upsertStaffOnboarding(id, payload);
@@ -355,6 +392,9 @@ export default function StaffOnboardingPage({ publicMode = false }: Props) {
           value={onboarding}
           readOnly={!editing}
           showStatus={!publicMode}
+          showHrUseOnly={!publicMode}
+          staffOptions={staffOptions}
+          verifiedBy={loggedInStaffName}
           fieldErrors={fieldErrors}
           onChange={(nextValue) => {
             setOnboarding(nextValue);
