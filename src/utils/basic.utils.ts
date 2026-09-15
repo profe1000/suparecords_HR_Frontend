@@ -1,8 +1,3 @@
-import {
-  IAdminBookData,
-  IAdminShortData,
-} from "../apiservice/admin-pages-service.type";
-
 export const convertObjToQueryParams = (obj: any) => {
   return "?" + new URLSearchParams(obj).toString();
 };
