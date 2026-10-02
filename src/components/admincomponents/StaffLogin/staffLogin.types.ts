@@ -33,6 +33,9 @@ export interface StaffFormValues {
   phone: string;
   department: string;
   staff_role_id: string;
+  /** Yearly leave allowance in calendar days; empty string means "don't change". */
+  leave_days?: number | "";
+  leave_year?: number;
 }
 
 export type StaffUpdateValues = Omit<StaffFormValues, "password"> & {

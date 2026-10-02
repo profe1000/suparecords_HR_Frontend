@@ -6,7 +6,7 @@ import {
   getStaff,
   getStaffOnboarding,
   getPublicStaffOnboarding,
-  getPublicStaffs,
+  getOnboardingColleagues,
   upsertStaffOnboarding,
   upsertPublicStaffOnboarding,
   getStaffs,
@@ -251,24 +251,22 @@ export default function StaffOnboardingPage({ publicMode = false }: Props) {
   }, [id, publicMode]);
 
   useEffect(() => {
-    const publicBranchId = Number(searchParams.get("branchId"));
-    const branchId = publicMode
-      ? publicBranchId
-      : authData.staff?.branch_id || authData.data?.id || 1;
-    if (!branchId) return;
-
-    const loadStaffOptions = publicMode ? getPublicStaffs : getStaffs;
-    loadStaffOptions({ branch_id: branchId, page: 1, perPage: 200, sort_order: "asc" })
-      .then((response) =>
+    if (!id) return;
+    // Reporting-manager options: everyone in the staff member's business.
+    const loadStaffOptions = publicMode
+      ? getOnboardingColleagues(id)
+      : getStaffs({ page: 1, perPage: 200, sort_order: "asc" }).then((response) => response.data || []);
+    loadStaffOptions
+      .then((records) =>
         setStaffOptions(
-          (response.data || []).map((record) => ({
+          records.map((record) => ({
             id: record.id,
             name: `${record.first_name} ${record.last_name}`.trim(),
           })),
         ),
       )
       .catch(() => setStaffOptions([]));
-  }, [authData.data?.id, authData.staff?.branch_id, publicMode, searchParams]);
+  }, [id, publicMode]);
 
   const save = async (finalize: boolean) => {
     if (!id) return;

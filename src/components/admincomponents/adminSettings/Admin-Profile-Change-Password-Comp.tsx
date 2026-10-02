@@ -1,159 +1,103 @@
 import { LoadingOutlined } from "@ant-design/icons";
-import { notification } from "antd";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { FormEvent, useState } from "react";
 import "./admin-settings-Comp.css";
-import { sampleApiCall } from "../../../apiservice/sampleUsage/sample";
-import useFormatApiRequest from "../../../hooks/formatApiRequest";
-import { useAppDispatch } from "../../../Redux/reduxCustomHook";
-import { NotificationType } from "../../../utils/mscType.type";
+import { changeMyPassword } from "../../../apiservice/staff-service";
+import { apiErrorMessage, Banner } from "../Approvals/ApprovalShared";
+
+const emptyForm = { currentPassword: "", newPassword: "", confirmPassword: "" };
 
 const AdminProfileChangePasswordComp = () => {
-  const [formLoading, setFormLoading] = useState<boolean>(false);
-  const [loadApi, setLoadApi] = useState(false);
-  const [user, setUser] = useState<any>({});
-  const [api, contextHolder] = notification.useNotification();
+  const [form, setForm] = useState(emptyForm);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const update = (key: keyof typeof emptyForm, value: string) =>
+    setForm((current) => ({ ...current, [key]: value }));
 
-  // Use to collect input changes
-  const handleInputChange = (event: any) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setUser((values: any) => ({ ...values, [name]: value }));
-  };
-
-  // Use to submit form
-  const handleSubmit = (event: any) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setLoadApi(true);
-    setFormLoading(true);
-  };
-
-  // A custom hook to format the API request
-  const result = useFormatApiRequest(
-    () => sampleApiCall(user),
-    loadApi,
-    () => {
-      setLoadApi(false);
-    },
-    () => {
-      processApi();
+    setError("");
+    setSuccess("");
+    if (form.newPassword.length < 6) {
+      setError("The new password must be at least 6 characters.");
+      return;
     }
-  );
-
-  // Process API response
-  const processApi = async () => {
-    if (result.httpState === "SUCCESS") {
-      setFormLoading(false);
-      openNotificationWithIcon(
-        "info",
-        "",
-        "Password Changed Successfully",
-        "#D9FFB5"
-      );
-      // Handle success here
-    } else if (result.httpState === "ERROR") {
-      setFormLoading(false);
-      // Handle error here
-      openNotificationWithIcon(
-        "info",
-        "",
-        result.data?.response?.data?.errors?.[0] ||
-        result.data?.response?.data?.message ||
-        result.errorMsg ||
-        "Error",
-        "#FFC2B7"
-      );
+    if (form.newPassword !== form.confirmPassword) {
+      setError("The new passwords don't match.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await changeMyPassword(form.currentPassword, form.newPassword);
+      setForm(emptyForm);
+      setSuccess("Your password has been changed. Use the new password next time you sign in.");
+    } catch (requestError) {
+      setError(apiErrorMessage(requestError, "Unable to change your password."));
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // Show notification
-  const openNotificationWithIcon = (
-    type: NotificationType,
-    message: string,
-    description: string,
-    background?: string
-  ) => {
-    api[type]({
-      message,
-      description,
-      placement: "bottomRight",
-      style: { background },
-    });
-  };
+  const inputClass = "pl-4 pr-4 py-2 border rounded-lg w-full h-14 bg-stone-100";
 
   return (
-    <>
-      {/* The context is used to hold the notification from ant design */}
-      {contextHolder}
-
-      {/* Main Design */}
-      <div className="grid p-4">
-        <div className="mb-6">
-          <p className="font-sans text-lg">Change Your Password</p>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          {/* Old Password */}
-          <div className="relative w-full mb-6">
-            <span>Old Password</span>
-            <input
-              required
-              name="oldPassword"
-              value={user?.oldPassword}
-              onChange={handleInputChange}
-              type="password"
-              className="pl-4 pr-4 py-2 border rounded-lg w-full h-16 bg-stone-100"
-              placeholder="Old Password"
-            />
-          </div>
-
-          {/* New Password */}
-          <div className="relative w-full mb-6">
-            <span>New Password</span>
-            <input
-              required
-              name="newPassword"
-              value={user?.newPassword}
-              onChange={handleInputChange}
-              type="password"
-              className="pl-4 pr-4 py-2 border rounded-lg w-full h-16 bg-stone-100"
-              placeholder="New Password"
-            />
-          </div>
-
-          {/* Confirm Password */}
-          <div className="relative w-full mb-6">
-            <span>Confirm Password</span>
-            <input
-              required
-              name="confirmPassword"
-              value={user?.confirmPassword}
-              onChange={handleInputChange}
-              type="password"
-              className="pl-4 pr-4 py-2 border rounded-lg w-full h-16 bg-stone-100"
-              placeholder="Confirm Password"
-            />
-          </div>
-
-          {/* Submit Button */}
-          <div className="mb-2">
-            <button
-              className="w-full h-16 font-sans bg-blue-800 text-white rounded-xl text-lg"
-              disabled={formLoading}
-            >
-              {!formLoading ? (
-                "Changed Password"
-              ) : (
-                <LoadingOutlined rev={undefined} />
-              )}
-            </button>
-          </div>
-        </form>
+    <div className="grid p-4">
+      <div className="mb-6">
+        <p className="font-sans text-lg">Change Your Password</p>
       </div>
-    </>
+
+      <form onSubmit={handleSubmit}>
+        <label className="relative mb-5 block w-full">
+          <span>Current Password</span>
+          <input
+            required
+            type="password"
+            autoComplete="current-password"
+            value={form.currentPassword}
+            onChange={(event) => update("currentPassword", event.target.value)}
+            className={inputClass}
+          />
+        </label>
+
+        <label className="relative mb-5 block w-full">
+          <span>New Password</span>
+          <input
+            required
+            type="password"
+            minLength={6}
+            autoComplete="new-password"
+            value={form.newPassword}
+            onChange={(event) => update("newPassword", event.target.value)}
+            className={inputClass}
+          />
+          <span className="mt-1 block text-xs text-slate-500">At least 6 characters.</span>
+        </label>
+
+        <label className="relative mb-5 block w-full">
+          <span>Confirm New Password</span>
+          <input
+            required
+            type="password"
+            autoComplete="new-password"
+            value={form.confirmPassword}
+            onChange={(event) => update("confirmPassword", event.target.value)}
+            className={inputClass}
+          />
+        </label>
+
+        {error && <Banner tone="error">{error}</Banner>}
+        {success && <Banner tone="success">{success}</Banner>}
+
+        <button
+          type="submit"
+          className="flex h-14 w-full items-center justify-center rounded-xl bg-red-800 font-sans text-lg text-white hover:bg-red-900 disabled:opacity-60"
+          disabled={submitting}
+        >
+          {submitting ? <LoadingOutlined /> : "Change Password"}
+        </button>
+      </form>
+    </div>
   );
 };
 

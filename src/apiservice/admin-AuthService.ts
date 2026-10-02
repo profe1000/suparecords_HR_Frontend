@@ -15,10 +15,11 @@ export const adminAuthSessionLogin = async () => {
   return result;
 };
 
-export const adminGetDashboardDetails = async (branch_id: number | string) => {
+/** Staff counts for the whole business, or one branch when branch_id is given. */
+export const adminGetDashboardDetails = async (branch_id?: number | "") => {
   const axios = await instance(null, null, true, true);
   const { data } = await axios.get(
-    `v1/dashboard/${convertObjToQueryParams({ branch_id })}`
+    `v1/dashboard/${branch_id ? convertObjToQueryParams({ branch_id }) : ""}`
   );
   const result = await data;
   return result;

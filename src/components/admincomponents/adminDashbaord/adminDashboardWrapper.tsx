@@ -21,11 +21,13 @@ import type { RootState } from "../../../Redux/store";
 import type { ILoadState } from "../../../utils/loading.utils.";
 import { adminGetDashboardDetails } from "../../../apiservice/admin-AuthService";
 import { getStaffs } from "../../../apiservice/staff-service";
+import useBusinessContext from "../../../hooks/useBusinessContext";
+import BranchFilter from "../../Sharedcomponents/BranchFilter/BranchFilter";
 
 // ─── Fetch ──────────────────────────────────────────────────────────────────
 
 const fetchDashboardData = async (
-  branchId: number
+  branchId: number | ""
 ): Promise<IAdminDashboardTypeData> => {
   const res = await adminGetDashboardDetails(branchId);
   return res.data;
@@ -45,14 +47,15 @@ export const AdminDashboardWrapper = () => {
     (state: RootState) => state?.AdminAuthData
   );
 
-  const branchId = authAdminData.staff?.branch_id || authAdminData.data?.id || 1;
+  const business = useBusinessContext();
+  const [branchId, setBranchId] = useState<number | "">("");
 
   const fetchData = async (showMessage = false) => {
     setLoadState("loading");
     try {
       const [data, staffResponse] = await Promise.all([
         fetchDashboardData(branchId),
-        getStaffs({ branch_id: branchId, page: 1, perPage: 5, sort_order: "desc" }),
+        getStaffs({ branch_id: branchId || undefined, page: 1, perPage: 5, sort_order: "desc" }),
       ]);
       if (!data) {
         setLoadState("noData");
@@ -160,11 +163,14 @@ export const AdminDashboardWrapper = () => {
                 Dashboard
               </h1>
               <p className="text-lg text-gray-600 mt-1">
-                Welcome back, {authAdminData?.data?.credentials?.fullName || "Admin"}
+                Welcome back,{" "}
+                {authAdminData?.staff?.first_name || authAdminData?.data?.credentials?.fullName || "Admin"}
+                {business ? ` · ${business.business.business_name}` : ""}
               </p>
             </div>
 
             <div className="flex items-center gap-4">
+              <BranchFilter business={business} value={branchId} onChange={setBranchId} />
               {lastUpdated && (
                 <div className="text-sm text-gray-500">
                   Last updated: {lastUpdated.toLocaleTimeString()}

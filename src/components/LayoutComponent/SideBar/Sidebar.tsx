@@ -17,8 +17,10 @@ import {
   AuditOutlined,
   FormOutlined,
   DollarOutlined,
+  SolutionOutlined,
 } from "@ant-design/icons";
 import { IAdminAuthType } from "../../../apiservice/admin-AuthService.type";
+import useStaffPermissions from "../../../hooks/useStaffPermissions";
 
 type ISideBarType = {
   onLinkChange?: () => void;
@@ -29,6 +31,7 @@ const Sidebar: React.FC<ISideBarType> = ({ onLinkChange }) => {
   const location = useLocation();
   const [currentUrlPath, setCurrentUrlPath] = useState("");
   const [menu, setMenu] = useState<IMenuType[]>([]);
+  const { permissions } = useStaffPermissions();
   const { confirm } = Modal;
 
   const authData: IAdminAuthType = useAppSelector(
@@ -42,6 +45,8 @@ const Sidebar: React.FC<ISideBarType> = ({ onLinkChange }) => {
     url: string;
     title: string;
     onClick?: () => void;
+    /** Shown only to Super Admin, General Admin and HR Manager. */
+    managerOnly?: boolean;
   };
 
   // Logout Confirmation
@@ -77,33 +82,43 @@ const Sidebar: React.FC<ISideBarType> = ({ onLinkChange }) => {
     {
       icon: <KeyOutlined />,
       url: "/admin/staff-login",
+      managerOnly: true,
       title: "Staff",
     },
 
     {
       icon: <CalendarOutlined />,
-      url: "/admin/coming-soon/leave-applications",
+      url: "/admin/leave-applications",
       title: "Leave Applications",
     },
     {
       icon: <CheckCircleOutlined />,
-      url: "/admin/coming-soon/leave-approval",
+      url: "/admin/leave-approval",
+      managerOnly: true,
       title: "Leave Approval",
     },
 
     {
       icon: <AuditOutlined />,
-      url: "/admin/coming-soon/request-approval",
+      url: "/admin/request-approval",
+      managerOnly: true,
       title: "Request Approval",
     },
     {
       icon: <FormOutlined />,
-      url: "/admin/coming-soon/request-submission",
+      url: "/admin/request-submission",
       title: "Request Submission",
+    },
+    {
+      icon: <SolutionOutlined />,
+      url: "/admin/recruitment",
+      title: "Recruitment",
+      managerOnly: true,
     },
     {
       icon: <DollarOutlined />,
       url: "/admin/coming-soon/payroll-management",
+      managerOnly: true,
       title: "Payroll Management",
     },
     {
@@ -128,11 +143,11 @@ const Sidebar: React.FC<ISideBarType> = ({ onLinkChange }) => {
       onLinkChange();
     }
     updateMenuType();
-  }, [location, authData]);
+  }, [location, authData, permissions]);
 
   const updateMenuType = () => {
-    // console.log(authData?.data?.credentials?.userRoleTypeId);
-    setMenu(menuSuper);
+    // Regular staff only see self-service pages; manager links appear once permissions confirm access.
+    setMenu(menuSuper.filter((item) => !item.managerOnly || permissions?.is_manager));
   };
 
   return (

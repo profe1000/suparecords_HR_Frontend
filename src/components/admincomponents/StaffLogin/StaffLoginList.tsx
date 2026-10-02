@@ -4,9 +4,14 @@ import { Link } from "react-router-dom";
 type Props = {
   records: StaffRecord[];
   roles: StaffRole[];
+  branchName?: (branchId: number) => string;
+  showBranch?: boolean;
   loading?: boolean;
   deletingId?: number | null;
+  /** False for staff who outrank the current user: they can't be edited or have their password reset. */
+  canManage?: (record: StaffRecord) => boolean;
   onEdit: (record: StaffRecord) => void;
+  onResetPassword: (record: StaffRecord) => void;
   onDelete: (record: StaffRecord) => void;
 };
 
@@ -19,9 +24,13 @@ const badgeClass = (value: StaffRecord["status"]) => {
 export default function StaffLoginList({
   records,
   roles,
+  branchName,
+  showBranch,
   loading,
   deletingId,
+  canManage = () => true,
   onEdit,
+  onResetPassword,
   onDelete,
 }: Props) {
   const roleTitle = (roleId: string) =>
@@ -39,6 +48,8 @@ export default function StaffLoginList({
         >
           View
         </Link>
+        {canManage(record) && (
+        <>
         <button
           type="button"
           onClick={() => onEdit(record)}
@@ -47,6 +58,16 @@ export default function StaffLoginList({
         >
           Edit
         </button>
+        <button
+          type="button"
+          onClick={() => onResetPassword(record)}
+          disabled={deleting}
+          className="rounded-lg border border-amber-600 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-50 disabled:opacity-60"
+        >
+          Reset password
+        </button>
+        </>
+        )}
         <button
           type="button"
           onClick={() => {
@@ -85,6 +106,7 @@ export default function StaffLoginList({
               <th className="px-3 py-3">Staff</th>
               <th className="px-3 py-3">Role</th>
               <th className="px-3 py-3">Contact</th>
+              {showBranch && <th className="px-3 py-3">Branch</th>}
               <th className="px-3 py-3">Department</th>
               <th className="px-3 py-3">Status</th>
               <th className="px-3 py-3 text-right">Actions</th>
@@ -103,6 +125,9 @@ export default function StaffLoginList({
                   <div>{record.email}</div>
                   <div className="mt-1 text-xs text-slate-500">{record.phone || "-"}</div>
                 </td>
+                {showBranch && (
+                  <td className="px-3 py-4 text-slate-700">{branchName?.(record.branch_id) || "-"}</td>
+                )}
                 <td className="px-3 py-4 text-slate-700">{record.department || "-"}</td>
                 <td className="px-3 py-4">
                   <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${badgeClass(record.status)}`}>

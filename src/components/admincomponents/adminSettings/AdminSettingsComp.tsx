@@ -8,6 +8,7 @@ import {
   ShoppingOutlined,
   CreditCardOutlined,
   SkinOutlined,
+  ApartmentOutlined,
   DollarOutlined,
 } from "@ant-design/icons";
 import { Modal, Button } from "antd"; // Assuming Ant Design Modal is used
@@ -19,9 +20,11 @@ import { appZIndex } from "../../../utils/appconst";
 import AdminProfileChangePasswordComp from "./Admin-Profile-Change-Password-Comp";
 import AdminProfileUpdateComp from "./Admin-Profile-Update-Comp";
 import AdminConfigUpdateComp from "./Admin-Config-Update-Comp";
+import useStaffPermissions from "../../../hooks/useStaffPermissions";
 
 export const AdminSettingsComp = () => {
   const navigate = useNavigate();
+  const { permissions } = useStaffPermissions();
   const [isModalVisible, setModalVisible] = useState(false);
   const [settingTitle, setSettingTitle] = useState("Settings");
   const [activeIndex, setActiveIndex] = useState<number | null>(null); // Track which menu item is active
@@ -43,7 +46,7 @@ export const AdminSettingsComp = () => {
 
   const openModalWithIndex = (index: number) => {
     setActiveIndex(index);
-    setSettingTitle(menuItems[index].text)
+    setSettingTitle(allMenuItems[index].text)
     setModalVisible(true);
   };
 
@@ -67,11 +70,13 @@ export const AdminSettingsComp = () => {
     }
   };
 
-  const menuItems = [
+  // `index` matches the case in renderModalContent; managerOnly items are hidden from regular staff.
+  const allMenuItems = [
     {
       icon: <UserOutlined />,
       text: "Edit Profile",
       action: () => openModalWithIndex(0),
+      managerOnly: true,
     },
     {
       icon: <LockOutlined />,
@@ -83,11 +88,19 @@ export const AdminSettingsComp = () => {
       text: "Update Site Config",
       action: () => openModalWithIndex(2),
       path: "",
+      managerOnly: true,
+    },
+    {
+      icon: <ApartmentOutlined />,
+      text: "Branches",
+      path: "/admin/branches",
+      adminOnly: true,
     },
     {
       icon: <QuestionCircleOutlined />,
       text: "Help Center",
       action: () => openModalWithIndex(3),
+      managerOnly: true,
     },
     {
       icon: <LogoutOutlined />,
@@ -95,6 +108,10 @@ export const AdminSettingsComp = () => {
       action: handleLogout,
     },
   ];
+  const menuItems = allMenuItems.filter(
+    (item: { managerOnly?: boolean; adminOnly?: boolean }) =>
+      (!item.managerOnly || permissions?.is_manager) && (!item.adminOnly || permissions?.can_filter_branches),
+  );
 
   const authAdminData: IAdminAuthType = useAppSelector(
     (state: RootState) => state?.AdminAuthData
@@ -104,10 +121,12 @@ export const AdminSettingsComp = () => {
     <div className="grid p-4">
       {/* Account Settings */}
       <h2 className="pt-2 pb-2 fontKanitRegular text-lg font-medium">
-        {authAdminData?.data?.credentials?.email}
+        {authAdminData?.staff?.email || authAdminData?.data?.credentials?.email}
       </h2>
       <p className="pt-2 pb-8 fontAlbertSansRegular text-sm">
-        {authAdminData?.data?.credentials?.fullName}
+        {authAdminData?.staff
+          ? `${authAdminData.staff.first_name} ${authAdminData.staff.last_name}`
+          : authAdminData?.data?.credentials?.fullName}
       </p>
 
       {menuItems.map((item, index) => (

@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useAppSelector } from "../../../Redux/reduxCustomHook";
 import { RootState } from "../../../Redux/store";
 import Sidebar from "../SideBar/Sidebar";
+import useBusinessContext from "../../../hooks/useBusinessContext";
 import "./topbar.css";
 
 export const TopBar = () => {
@@ -12,6 +13,7 @@ export const TopBar = () => {
     (state: RootState) => state?.AdminAuthData
   );
   const [open, setOpen] = useState(false);
+  const business = useBusinessContext();
 
   const showDrawer = () => {
     setOpen(true);
@@ -90,7 +92,7 @@ export const TopBar = () => {
         zIndex={1000000}
         title={
           <span style={{ color: "#fff", fontWeight: 600 }}>
-            Supa Records Hotel
+            {business?.business.business_name || "SupaRecords HR"}
           </span>
         }
         placement="left"

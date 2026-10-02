@@ -13,8 +13,8 @@ import {
 } from "../../../apiservice/maintenance-service";
 import { getStaffs } from "../../../apiservice/staff-service";
 import { StaffRecord } from "../StaffLogin/staffLogin.types";
-import { useAppSelector } from "../../../Redux/reduxCustomHook";
-import type { RootState } from "../../../Redux/store";
+import useBusinessContext from "../../../hooks/useBusinessContext";
+import BranchFilter from "../../Sharedcomponents/BranchFilter/BranchFilter";
 
 export default function RoomsMaintainanceWrapper() {
   const [records, setRecords] = useState<Task[]>([]);
@@ -32,8 +32,8 @@ export default function RoomsMaintainanceWrapper() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const formId = "task-form";
-  const authData = useAppSelector((state: RootState) => state.AdminAuthData);
-  const branchId = authData.staff?.branch_id || authData.data?.id || 1;
+  const business = useBusinessContext();
+  const [branchFilter, setBranchFilter] = useState<number | "">("");
 
   const loadRecords = async () => {
     setLoading(true);
@@ -43,6 +43,7 @@ export default function RoomsMaintainanceWrapper() {
         page: 1,
         perPage: 20,
         sort_order: "desc",
+        ...(branchFilter ? { branch_id: branchFilter } : {}),
         ...(staffFilter === "All" ? {} : { assigned_staff_id: Number(staffFilter) }),
         ...(typeFilter === "All" ? {} : { task_type: typeFilter }),
         ...(statusFilter === "All" ? {} : { status: statusFilter }),
@@ -58,15 +59,15 @@ export default function RoomsMaintainanceWrapper() {
   };
 
   useEffect(() => {
-    getStaffs({ branch_id: branchId, page: 1, perPage: 100, sort_order: "desc" })
+    getStaffs({ branch_id: branchFilter || undefined, page: 1, perPage: 200, sort_order: "asc" })
       .then((response) => setStaffOptions(response.data || []))
       .catch(() => setStaffOptions([]));
-  }, [branchId]);
+  }, [branchFilter]);
 
   useEffect(() => {
     loadRecords();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [staffFilter, statusFilter, typeFilter, priorityFilter, search]);
+  }, [branchFilter, staffFilter, statusFilter, typeFilter, priorityFilter, search]);
 
   const openAddModal = () => {
     setEditingRecord(null);
@@ -154,6 +155,14 @@ export default function RoomsMaintainanceWrapper() {
             </p>
           </div>
           <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-2 xl:grid-cols-6">
+            <BranchFilter
+              business={business}
+              value={branchFilter}
+              onChange={(value) => {
+                setBranchFilter(value);
+                setStaffFilter("All");
+              }}
+            />
             <input
               type="search"
               value={search}

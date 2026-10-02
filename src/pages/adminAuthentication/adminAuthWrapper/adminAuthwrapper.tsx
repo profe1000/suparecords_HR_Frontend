@@ -15,7 +15,7 @@ const AdminAuthWrapper = ({
   testId,
   children,
   title = "Welcome to",
-  brandName = "SupaRecords Hotel",
+  brandName = "SupaRecords HR",
   description =
     "Manage inventory, accounting, sales, purchasing and warehouses from one secure cloud platform.",
 }: IAdminAuthWrapper) => {

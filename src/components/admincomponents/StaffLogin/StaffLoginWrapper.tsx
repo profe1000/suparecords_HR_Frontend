@@ -3,6 +3,7 @@ import { Modal } from "antd";
 import { useEffect, useState } from "react";
 import { appZIndex } from "../../../utils/appconst";
 import AddEditStaffLoginForm from "./AddEditStaffLoginForm";
+import ResetStaffPasswordModal from "./ResetStaffPasswordModal";
 import StaffLoginList from "./StaffLoginList";
 import {
   StaffFormValues,
@@ -13,16 +14,21 @@ import {
 import {
   createStaff,
   deleteStaff,
+  getAssignableRoles,
   getStaffRoles,
   getStaffs,
   updateStaff,
 } from "../../../apiservice/staff-service";
 import { useAppSelector } from "../../../Redux/reduxCustomHook";
 import type { RootState } from "../../../Redux/store";
+import useBusinessContext, { branchLabel } from "../../../hooks/useBusinessContext";
+import BranchFilter from "../../Sharedcomponents/BranchFilter/BranchFilter";
 
 export default function StaffLoginWrapper() {
   const [records, setRecords] = useState<StaffRecord[]>([]);
   const [roles, setRoles] = useState<StaffRole[]>([]);
+  // Roles this user may hand out; staff holding any other role outrank them and are read-only.
+  const [assignableRoles, setAssignableRoles] = useState<StaffRole[]>([]);
   const [search, setSearch] = useState("");
   const [editingRecord, setEditingRecord] = useState<StaffRecord | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -30,17 +36,21 @@ export default function StaffLoginWrapper() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [resettingRecord, setResettingRecord] = useState<StaffRecord | null>(null);
   const [error, setError] = useState("");
   const formId = "staff-login-form";
   const authData = useAppSelector((state: RootState) => state.AdminAuthData);
-  const branchId = authData.staff?.branch_id || authData.data?.id || 1;
+  const business = useBusinessContext();
+  const [branchFilter, setBranchFilter] = useState<number | "">("");
+  // New staff default to the filtered branch, else the creator's own branch.
+  const defaultBranchId = branchFilter || authData.staff?.branch_id || 0;
 
   const loadStaff = async () => {
     setLoading(true);
     setError("");
     try {
       const response = await getStaffs({
-        branch_id: branchId,
+        branch_id: branchFilter || undefined,
         page: 1,
         perPage: 20,
         sort_order: "desc",
@@ -58,12 +68,18 @@ export default function StaffLoginWrapper() {
     getStaffRoles()
       .then((response) => setRoles(response.data || []))
       .catch(() => setRoles([]));
+    getAssignableRoles()
+      .then(setAssignableRoles)
+      .catch(() => setAssignableRoles([]));
   }, []);
+
+  const canManage = (record: StaffRecord) =>
+    !record.staff_role_id || assignableRoles.some((role) => role.id === record.staff_role_id);
 
   useEffect(() => {
     loadStaff();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [branchId, search]);
+  }, [branchFilter, search]);
 
   const openAddModal = () => {
     setEditingRecord(null);
@@ -86,8 +102,12 @@ export default function StaffLoginWrapper() {
         await updateStaff(editingRecord.id, values as StaffUpdateValues);
         setMessage("Staff updated successfully.");
       } else {
-        await createStaff({ ...(values as StaffFormValues), branch_id: branchId });
-        setMessage("Staff created successfully.");
+        const created = await createStaff(values as StaffFormValues);
+        setMessage(
+          created?.email_sent
+            ? `Staff created. A welcome email was sent to ${created.email}.`
+            : "Staff created. The welcome email could not be sent, so share the sign-in details directly.",
+        );
       }
       closeModal();
       await loadStaff();
@@ -165,7 +185,8 @@ export default function StaffLoginWrapper() {
             </p>
           </div>
 
-          <div className="grid w-full gap-3 sm:w-auto">
+          <div className="grid w-full gap-3 sm:w-auto sm:grid-flow-col">
+            <BranchFilter business={business} value={branchFilter} onChange={setBranchFilter} />
             <input
               type="search"
               value={search}
@@ -186,13 +207,19 @@ export default function StaffLoginWrapper() {
           <StaffLoginList
             records={records}
             roles={roles}
+            branchName={(id) => branchLabel(business, id)}
+            showBranch={(business?.branches.length || 0) > 1}
             loading={loading}
             deletingId={deletingId}
+            canManage={canManage}
             onEdit={openEditModal}
+            onResetPassword={setResettingRecord}
             onDelete={removeRecord}
           />
         </div>
       </section>
+
+      <ResetStaffPasswordModal staff={resettingRecord} onClose={() => setResettingRecord(null)} />
 
       <Modal
         zIndex={appZIndex.modal}
@@ -215,8 +242,10 @@ export default function StaffLoginWrapper() {
             <AddEditStaffLoginForm
               key={editingRecord?.id || "new"}
               formId={formId}
-              branchId={branchId}
-              roles={roles}
+              branchId={defaultBranchId}
+              branches={business?.branches || []}
+              roles={assignableRoles}
+              editingSelf={editingRecord?.id === authData.staff?.id}
               initialValues={editingRecord}
               onSubmit={saveRecord}
             />

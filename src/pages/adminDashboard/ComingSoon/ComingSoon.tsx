@@ -6,10 +6,6 @@ import {
 import { Link, useParams } from "react-router-dom";
 
 const featureTitles: Record<string, string> = {
-  "leave-applications": "Leave Applications",
-  "leave-approval": "Leave Approval",
-  "request-approval": "Request Approval",
-  "request-submission": "Request Submission",
   "payroll-management": "Payroll Management",
 };
 
